@@ -113,6 +113,15 @@ export const useAppStore = create<AppStore>()(
       partialize: (state) => ({
         recordings: state.recordings,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.recordings) {
+          state.recordings = state.recordings.map(recording => ({
+            ...recording,
+            createdAt: new Date(recording.createdAt),
+            updatedAt: new Date(recording.updatedAt),
+          }));
+        }
+      },
     }
   )
 );
