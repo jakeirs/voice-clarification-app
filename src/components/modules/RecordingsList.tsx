@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppStore } from '@/lib/store-zustand/useAppStore';
+import { VoiceRecording } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatDuration, formatFileSize } from '@/lib/audioUtils';
@@ -22,11 +23,14 @@ export function RecordingsList() {
   const [currentTime, setCurrentTime] = useState<{ [key: string]: number }>({});
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
-  const handlePlayPause = (recording: any) => {
+  const handlePlayPause = (recording: VoiceRecording) => {
     const audio = audioRefs.current[recording.id];
     
     if (!audio) {
-      const newAudio = new Audio(recording.audioUrl || URL.createObjectURL(recording.audioBlob));
+      const audioSrc = recording.audioUrl || (recording.audioBlob ? URL.createObjectURL(recording.audioBlob) : '');
+      if (!audioSrc) return;
+      
+      const newAudio = new Audio(audioSrc);
       audioRefs.current[recording.id] = newAudio;
       
       newAudio.addEventListener('timeupdate', () => {
@@ -59,8 +63,10 @@ export function RecordingsList() {
     }
   };
 
-  const handleDownload = (recording: any) => {
-    const url = recording.audioUrl || URL.createObjectURL(recording.audioBlob);
+  const handleDownload = (recording: VoiceRecording) => {
+    const url = recording.audioUrl || (recording.audioBlob ? URL.createObjectURL(recording.audioBlob) : '');
+    if (!url) return;
+    
     const a = document.createElement('a');
     a.href = url;
     a.download = `${recording.title}.wav`;
