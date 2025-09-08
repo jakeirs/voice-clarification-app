@@ -1,43 +1,19 @@
-export interface VoiceRecording {
+export interface Transcript {
   id: string;
-  title: string;
-  audioBlob?: Blob;
+  text: string;
   audioUrl?: string;
-  transcript?: string;
-  clarifiedText?: string;
+  audioBlob?: Blob;
   createdAt: Date;
   updatedAt: Date;
-  status: 'recording' | 'processing' | 'completed' | 'error';
   duration?: number;
-  fileSize?: number;
+  status: 'processing' | 'completed' | 'error';
 }
 
 export interface AppState {
-  recordings: VoiceRecording[];
-  currentRecording: VoiceRecording | null;
+  transcripts: Transcript[];
+  currentTranscript: Transcript | null;
   isRecording: boolean;
+  isPaused: boolean;
   isProcessing: boolean;
   error: string | null;
-}
-
-export interface AudioSettings {
-  sampleRate: number;
-  bitDepth: number;
-  channels: number;
-  format: string;
-}
-
-export interface AppError {
-  id: string;
-  message: string;
-  type: 'network' | 'audio' | 'processing' | 'storage' | 'unknown';
-  timestamp: Date;
-  retryable: boolean;
-}
-
-export interface FileUpload {
-  file: File;
-  progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error';
-  error?: string;
 }

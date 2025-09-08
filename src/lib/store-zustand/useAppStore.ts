@@ -1,18 +1,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { VoiceRecording, AppState, AppError } from '@/types';
+import { Transcript, AppState } from '@/types';
 import { STORAGE_KEYS } from '@/lib/storage/localStorage';
 
 interface AppStore extends AppState {
   // Recording actions
   startRecording: () => void;
+  pauseRecording: () => void;
+  resumeRecording: () => void;
   stopRecording: () => void;
-  setCurrentRecording: (recording: VoiceRecording | null) => void;
+  setCurrentTranscript: (transcript: Transcript | null) => void;
   
-  // Recording management
-  addRecording: (recording: VoiceRecording) => void;
-  updateRecording: (id: string, updates: Partial<VoiceRecording>) => void;
-  deleteRecording: (id: string) => void;
+  // Transcript management
+  addTranscript: (transcript: Transcript) => void;
+  updateTranscript: (id: string, updates: Partial<Transcript>) => void;
+  deleteTranscript: (id: string) => void;
   
   // Processing state
   setProcessing: (isProcessing: boolean) => void;
@@ -22,14 +24,14 @@ interface AppStore extends AppState {
   clearError: () => void;
   
   // Utility actions
-  clearAllRecordings: () => void;
-  retryProcessing: (recordingId: string) => void;
+  clearAllTranscripts: () => void;
 }
 
 const initialState: AppState = {
-  recordings: [],
-  currentRecording: null,
+  transcripts: [],
+  currentTranscript: null,
   isRecording: false,
+  isPaused: false,
   isProcessing: false,
   error: null,
 };
@@ -41,43 +43,51 @@ export const useAppStore = create<AppStore>()(
       
       // Recording actions
       startRecording: () => {
-        set({ isRecording: true, error: null });
+        set({ isRecording: true, isPaused: false, error: null });
+      },
+      
+      pauseRecording: () => {
+        set({ isPaused: true });
+      },
+      
+      resumeRecording: () => {
+        set({ isPaused: false });
       },
       
       stopRecording: () => {
-        set({ isRecording: false });
+        set({ isRecording: false, isPaused: false });
       },
       
-      setCurrentRecording: (recording) => {
-        set({ currentRecording: recording });
+      setCurrentTranscript: (transcript) => {
+        set({ currentTranscript: transcript });
       },
       
-      // Recording management
-      addRecording: (recording) => {
+      // Transcript management
+      addTranscript: (transcript) => {
         set((state) => ({
-          recordings: [...state.recordings, recording],
+          transcripts: [...state.transcripts, transcript],
         }));
       },
       
-      updateRecording: (id, updates) => {
+      updateTranscript: (id, updates) => {
         set((state) => ({
-          recordings: state.recordings.map((recording) =>
-            recording.id === id 
-              ? { ...recording, ...updates, updatedAt: new Date() }
-              : recording
+          transcripts: state.transcripts.map((transcript) =>
+            transcript.id === id 
+              ? { ...transcript, ...updates, updatedAt: new Date() }
+              : transcript
           ),
-          currentRecording: 
-            state.currentRecording?.id === id
-              ? { ...state.currentRecording, ...updates, updatedAt: new Date() }
-              : state.currentRecording,
+          currentTranscript: 
+            state.currentTranscript?.id === id
+              ? { ...state.currentTranscript, ...updates, updatedAt: new Date() }
+              : state.currentTranscript,
         }));
       },
       
-      deleteRecording: (id) => {
+      deleteTranscript: (id) => {
         set((state) => ({
-          recordings: state.recordings.filter((recording) => recording.id !== id),
-          currentRecording: 
-            state.currentRecording?.id === id ? null : state.currentRecording,
+          transcripts: state.transcripts.filter((transcript) => transcript.id !== id),
+          currentTranscript: 
+            state.currentTranscript?.id === id ? null : state.currentTranscript,
         }));
       },
       
@@ -96,29 +106,21 @@ export const useAppStore = create<AppStore>()(
       },
       
       // Utility actions
-      clearAllRecordings: () => {
-        set({ recordings: [], currentRecording: null });
-      },
-      
-      retryProcessing: (recordingId) => {
-        const recording = get().recordings.find(r => r.id === recordingId);
-        if (recording) {
-          get().updateRecording(recordingId, { status: 'processing' });
-          get().setError(null);
-        }
+      clearAllTranscripts: () => {
+        set({ transcripts: [], currentTranscript: null });
       },
     }),
     {
-      name: STORAGE_KEYS.RECORDINGS,
+      name: STORAGE_KEYS.RECORDINGS, // Keep same key for backward compatibility
       partialize: (state) => ({
-        recordings: state.recordings,
+        transcripts: state.transcripts,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.recordings) {
-          state.recordings = state.recordings.map(recording => ({
-            ...recording,
-            createdAt: new Date(recording.createdAt),
-            updatedAt: new Date(recording.updatedAt),
+        if (state?.transcripts) {
+          state.transcripts = state.transcripts.map(transcript => ({
+            ...transcript,
+            createdAt: new Date(transcript.createdAt),
+            updatedAt: new Date(transcript.updatedAt),
           }));
         }
       },
