@@ -44,12 +44,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if the audio format is supported by Fal AI (mp3, ogg, wav, m4a, aac)
-    const supportedFormats = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/mp4', 'audio/aac'];
+    // Check if the audio format is supported by Fal AI Whisper (mp3, mp4, mpeg, mpga, m4a, wav, webm)
+    const supportedFormats = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/m4a', 'audio/webm'];
     const isSupported = supportedFormats.some(format => audioFile.type.includes(format.split('/')[1]));
     
     if (!isSupported) {
-      console.warn('⚠️ Audio format may not be supported by Fal AI:', audioFile.type);
+      console.warn('⚠️ Audio format may not be supported by Fal AI Whisper:', audioFile.type);
       // We'll still try to process it, but log a warning
     }
 
@@ -81,14 +81,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🤖 Calling Fal AI speech-to-text API...');
+    console.log('🤖 Calling Fal AI Whisper API...');
     let result: any;
     
     try {
-      result = await fal.subscribe('fal-ai/speech-to-text', {
+      result = await fal.subscribe('fal-ai/whisper', {
         input: {
           audio_url: audioUrl,
-          use_pnc: true, // Enable punctuation and capitalization
+          task: 'transcribe',
+          chunk_level: 'segment',
+          version: '3',
         },
         logs: true,
         onQueueUpdate: (update) => {
@@ -114,8 +116,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract transcript from result
-    const transcript = result?.data?.output || '';
+    // Extract transcript from result (Whisper returns text field)
+    const transcript = result?.data?.text || '';
     console.log('📝 Transcript result:', {
       hasOutput: !!transcript,
       outputLength: transcript.length,
