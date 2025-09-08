@@ -38,7 +38,7 @@ const initialState: AppState = {
 
 export const useAppStore = create<AppStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
       
       // Recording actions

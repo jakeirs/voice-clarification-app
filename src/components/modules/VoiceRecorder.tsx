@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Transcript } from '@/types';
 import { generateRecordingId, formatDuration } from '@/lib/audioUtils';
-import { Mic, Square, Play, Pause as PauseIcon, Loader2, Trash2, Save } from 'lucide-react';
+import { Mic, Square, Pause as PauseIcon, Loader2, Trash2, Save } from 'lucide-react';
 
 export function VoiceRecorder() {
   const { 
@@ -57,7 +57,6 @@ export function VoiceRecorder() {
       });
       
       // Try to use Fal AI compatible audio formats (mp3, ogg, wav, m4a, aac)
-      let mediaRecorder: MediaRecorder;
       const mimeTypes = [
         'audio/wav',
         'audio/mp4', // for m4a/aac
@@ -77,7 +76,7 @@ export function VoiceRecorder() {
       
       console.log('🎙️ Selected audio format:', selectedMimeType || 'default');
       
-      mediaRecorder = selectedMimeType 
+      const mediaRecorder = selectedMimeType 
         ? new MediaRecorder(stream, { mimeType: selectedMimeType })
         : new MediaRecorder(stream);
       
@@ -225,15 +224,16 @@ export function VoiceRecorder() {
           
           setTranscript(result.transcript);
           setShowTranscript(true);
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const err = error as { message?: string; name?: string; stack?: string };
           console.error('💥 Unexpected transcription error:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack,
+            message: err.message,
+            name: err.name,
+            stack: err.stack,
             fullError: error,
           });
           
-          setError(`Unexpected error: ${error.message}. Please check the console for details.`);
+          setError(`Unexpected error: ${err.message || 'Unknown error'}. Please check the console for details.`);
         } finally {
           setProcessing(false);
         }

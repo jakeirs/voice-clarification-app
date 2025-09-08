@@ -64,25 +64,26 @@ export async function POST(request: NextRequest) {
     try {
       audioUrl = await fal.storage.upload(audioBlob);
       console.log('✅ Upload successful, URL:', audioUrl);
-    } catch (uploadError: any) {
+    } catch (uploadError: unknown) {
+      const error = uploadError as { message?: string; status?: number; body?: unknown; stack?: string };
       console.error('❌ Upload failed:', {
-        message: uploadError.message,
-        status: uploadError.status,
-        body: uploadError.body,
-        stack: uploadError.stack,
+        message: error.message,
+        status: error.status,
+        body: error.body,
+        stack: error.stack,
       });
       return NextResponse.json(
         { 
           error: 'Failed to upload audio file',
-          details: uploadError.message,
-          uploadError: uploadError.body || uploadError.message
+          details: error.message || 'Unknown upload error',
+          uploadError: error.body || error.message || 'Unknown error'
         },
         { status: 500 }
       );
     }
 
     console.log('🤖 Calling Fal AI Whisper API...');
-    let result: any;
+    let result: { data?: { text?: string } };
     
     try {
       result = await fal.subscribe('fal-ai/whisper', {
@@ -98,18 +99,19 @@ export async function POST(request: NextRequest) {
         },
       });
       console.log('✅ Transcription successful');
-    } catch (transcriptionError: any) {
+    } catch (transcriptionError: unknown) {
+      const error = transcriptionError as { message?: string; status?: number; body?: unknown; stack?: string };
       console.error('❌ Transcription failed:', {
-        message: transcriptionError.message,
-        status: transcriptionError.status,
-        body: transcriptionError.body,
-        stack: transcriptionError.stack,
+        message: error.message,
+        status: error.status,
+        body: error.body,
+        stack: error.stack,
       });
       return NextResponse.json(
         { 
           error: 'Failed to transcribe audio',
-          details: transcriptionError.message,
-          transcriptionError: transcriptionError.body || transcriptionError.message,
+          details: error.message || 'Unknown transcription error',
+          transcriptionError: error.body || error.message || 'Unknown error',
           audioUrl: audioUrl, // Include the URL for debugging
         },
         { status: 500 }
@@ -143,22 +145,23 @@ export async function POST(request: NextRequest) {
       audioUrl: audioUrl, // Include for debugging
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; name?: string; status?: number; body?: unknown; stack?: string };
     console.error('💥 Unexpected error in transcription:', {
-      message: error.message,
-      name: error.name,
-      status: error.status,
-      body: error.body,
-      stack: error.stack,
+      message: err.message,
+      name: err.name,
+      status: err.status,
+      body: err.body,
+      stack: err.stack,
       fullError: error,
     });
     
     return NextResponse.json(
       { 
         error: 'Unexpected error during transcription',
-        details: error.message,
-        errorType: error.name,
-        errorBody: error.body,
+        details: err.message || 'Unknown error',
+        errorType: err.name || 'Unknown',
+        errorBody: err.body,
         fullError: process.env.NODE_ENV === 'development' ? error : undefined,
       },
       { status: 500 }

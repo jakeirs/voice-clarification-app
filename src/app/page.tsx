@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Mic, FileText, AlertCircle } from 'lucide-react';
 
 export default function Home() {
-  const { transcripts, error, isProcessing, isRecording } = useAppStore();
+  const { transcripts, error } = useAppStore();
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
