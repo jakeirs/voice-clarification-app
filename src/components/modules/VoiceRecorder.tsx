@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Transcript } from '@/types';
 import { generateRecordingId, formatDuration } from '@/lib/audioUtils';
 import { Mic, Square, Pause as PauseIcon, Loader2, Trash2, Save } from 'lucide-react';
+import { HelpfulQuestions } from './HelpfulQuestions';
 
 export function VoiceRecorder() {
   const { 
@@ -287,6 +288,11 @@ export function VoiceRecorder() {
 
   return (
     <div className="space-y-4">
+      {/* Helpful Questions */}
+      {!showTranscript && !isProcessing && !isRecording && (
+        <HelpfulQuestions />
+      )}
+      
       {/* Processing State */}
       {isProcessing && (
         <div className="flex flex-col items-center space-y-4">
