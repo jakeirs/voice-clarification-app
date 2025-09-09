@@ -15,13 +15,20 @@ interface PromptDetailsProps {
   onClose: () => void;
   promptTitle: string;
   promptPath?: string;
+  directContent?: string;
 }
 
-export function PromptDetails({ isOpen, onClose, promptTitle, promptPath }: PromptDetailsProps) {
+export function PromptDetails({ isOpen, onClose, promptTitle, promptPath, directContent }: PromptDetailsProps) {
   const [markdownContent, setMarkdownContent] = useState<string>('Loading...');
   const [isLoading, setIsLoading] = useState(false);
 
   const loadMarkdownContent = async () => {
+    // If we have direct content, use it instead of loading from file
+    if (directContent) {
+      setMarkdownContent(directContent);
+      return;
+    }
+    
     if (!promptPath) {
       setMarkdownContent('No file path provided');
       return;
@@ -76,10 +83,10 @@ Sorry, we couldn't load the prompt content. Please try again later.
   };
 
   useEffect(() => {
-    if (isOpen && promptPath) {
+    if (isOpen && (promptPath || directContent)) {
       loadMarkdownContent();
     }
-  }, [isOpen, promptPath]);
+  }, [isOpen, promptPath, directContent]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -87,7 +94,7 @@ Sorry, we couldn't load the prompt content. Please try again later.
         <SheetHeader>
           <SheetTitle className="text-white">{promptTitle}</SheetTitle>
           <SheetDescription className="text-white/60">
-            {isLoading ? 'Loading prompt content...' : 'Prompt details and context information'}
+            {isLoading ? 'Loading prompt content...' : directContent ? 'Generated content details' : 'Prompt details and context information'}
           </SheetDescription>
         </SheetHeader>
 

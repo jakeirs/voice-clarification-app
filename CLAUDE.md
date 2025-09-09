@@ -139,8 +139,10 @@ src/
 - **PRDViewer** (`PRDViewer.tsx`): Full-screen PRD viewer with copy/download
 - **TranscriptViewer** (`TranscriptViewer.tsx`): Raw transcript content viewer
 
-### **6. PRD Generation & Storage System**
-- **Auto-Save PRDs**: Generated PRDs automatically saved to transcript
+### **6. Enhanced PRD Generation & Storage System**
+- **Auto-Save PRDs**: Generated PRDs automatically saved to transcript with timestamp and context metadata
+- **Generated Results Display**: Post-generation ContextCard appears showing PRD with "Show Prompt" functionality
+- **Direct Content Viewing**: PromptDetails component enhanced to display generated PRD content via `directContent` prop
 - **Ready PRD Context**: PRDs become reusable context for future generations  
 - **Persistent Storage**: PRDs survive browser refresh and app restarts
 - **Context Selection**: Structured prompts with App Description, Raw Transcription, Ready PRD, Master Prompts
@@ -232,19 +234,21 @@ interface Transcript {
 10. **View Details**: Click transcript card to open detailed Sheet view
 11. **Edit Content**: In-place editing of titles and transcript content (single source of truth)
 
-### **PRD Generation Flow**
+### **Enhanced PRD Generation Flow**
 12. **Tab Navigation**: Switch to Generate PRD tab
 13. **Context Selection**: Check Ready PRD, App Description, Raw Transcription, Master Prompts
 14. **Generate PRD**: Automatically saves to transcript.generatedPRD
-15. **Ready PRD Card**: Immediately appears as reusable context
-16. **View PRD**: Click "Show PRD" to open full-screen viewer
+15. **Generated Results Display**: New ContextCard appears in "Generated Results" section with timestamp and character count
+16. **View Generated Content**: Click "..." → "Show Prompt" to view full PRD content in enhanced PromptDetails sheet
+17. **Ready PRD Card**: Also appears as reusable context for future generations
+18. **Full-Screen Viewer**: Click "Show PRD" button for dedicated PRD viewer with copy/download
 
 ### **UI Design Generation Flow**
-17. **Upload Images**: Sheet-based interface with drag & drop
-18. **Generate JSON Prompt**: Creates structured design prompt with selected context
-19. **Generate Designs**: Creates 1-3 design variations using Fal AI
-20. **View Results**: Full-screen image viewer with zoom and download
-21. **Persistence**: All data saved per transcript and survives browser refresh
+19. **Upload Images**: Sheet-based interface with drag & drop
+20. **Generate JSON Prompt**: Creates structured design prompt with selected context
+21. **Generate Designs**: Creates 1-3 design variations using Fal AI
+22. **View Results**: Full-screen image viewer with zoom and download
+23. **Persistence**: All data saved per transcript and survives browser refresh
 
 ## 🚀 Recent Major Improvements
 
@@ -334,7 +338,7 @@ curl -X POST http://localhost:3010/api/gemini \
 
 ## 📝 Session Change Log
 
-### **2025-09-09 - Complete Persistence & Hydration Fix**
+### **2025-09-09 - Complete Persistence & Enhanced PRD Generation**
 - **Critical Fix**: Removed `skipHydration: true` - restored data loading functionality
 - **Enhanced Storage**: Complete per-transcript storage for PRDs and UI designs
 - **Data Migration**: Automatic migration from `voice-clarification-recordings` to `voice-transcription-transcripts`
@@ -342,18 +346,20 @@ curl -X POST http://localhost:3010/api/gemini \
 - **Hydration Handling**: Added `BodyAttributeHandler` and `HydrationErrorBoundary`
 - **Browser Compatibility**: Fixed extension attribute conflicts (password managers, Grammarly)
 - **PRD Auto-Save**: Generated PRDs automatically saved and reusable as context
+- **Enhanced PRD Display**: Added Generated Results section with ContextCard for immediate PRD viewing
+- **Direct Content Support**: Enhanced PromptDetails component to display generated content via `directContent` prop
 - **Single Source of Truth**: Raw Transcript tab content is definitive
 - **Per-Transcript UI Designs**: Images, JSON prompts, and designs stored per transcript
 
 ### **Key Metrics (Latest Implementation)**
-- **Code Changes**: +919 lines added, -69 lines removed
+- **Code Changes**: +950 lines added, -75 lines removed (including PRD enhancement)
 - **New Components**: 3 (BodyAttributeHandler, HydrationErrorBoundary, PRDViewer, TranscriptViewer)
-- **Enhanced Components**: 5 (Library, TranscriptDetails, GeneratePRDTab, useAppStore)
+- **Enhanced Components**: 6 (Library, TranscriptDetails, GeneratePRDTab, PromptDetails, useAppStore)
 - **New Utilities**: 3 (file-serialization, migration-utils, updated storage keys)
-- **Problem Resolution**: Complete data persistence + hydration compatibility
+- **Problem Resolution**: Complete data persistence + hydration compatibility + enhanced PRD viewing
 
 ---
 
 **Last Updated**: September 9, 2025  
-**Status**: ✅ Complete persistence system implemented, ✅ Hydration issues resolved, ✅ PRD auto-save working, ✅ Per-transcript UI design storage, ✅ Browser extension compatibility  
+**Status**: ✅ Complete persistence system implemented, ✅ Hydration issues resolved, ✅ PRD auto-save working, ✅ Enhanced PRD viewing with Generated Results, ✅ Per-transcript UI design storage, ✅ Browser extension compatibility  
 **Next Session**: Performance optimization, export features, and advanced search functionality

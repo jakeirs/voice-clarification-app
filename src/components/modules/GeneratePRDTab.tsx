@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAppStore } from '@/lib/store-zustand/useAppStore';
@@ -37,6 +37,7 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
   const [generatedPRD, setGeneratedPRD] = useState<string | null>(null);
   const [prdViewerOpen, setPrdViewerOpen] = useState(false);
   const [transcriptViewerOpen, setTranscriptViewerOpen] = useState(false);
+  const [showGeneratedPRDPrompt, setShowGeneratedPRDPrompt] = useState(false);
 
   const handleShowPrompt = (title: string, path: string) => {
     setPromptDetailsConfig({ title, path });
@@ -50,6 +51,33 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
   const handleShowTranscript = () => {
     setTranscriptViewerOpen(true);
   };
+
+  const handleShowGeneratedPRD = () => {
+    setShowGeneratedPRDPrompt(true);
+  };
+
+  // Clear generated PRD state when activeTab changes away from generate-prd
+  useEffect(() => {
+    const { activeTab } = useAppStore.getState();
+    if (activeTab !== 'generate-prd') {
+      setGeneratedPRD(null);
+      setShowGeneratedPRDPrompt(false);
+    }
+  }, []);
+
+  // Subscribe to active tab changes
+  useEffect(() => {
+    const unsubscribe = useAppStore.subscribe(
+      (state) => {
+        if (state.activeTab !== 'generate-prd') {
+          setGeneratedPRD(null);
+          setShowGeneratedPRDPrompt(false);
+        }
+      }
+    );
+    
+    return unsubscribe;
+  }, []);
 
   const handleGeneratePRD = async () => {
     setIsGeneratingPRD(true);
@@ -255,6 +283,27 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
             />
           </div>
 
+          {/* Generated Results Section */}
+          {generatedPRD && (
+            <div className="space-y-4">
+              <div className="pt-4 border-t border-white/10">
+                <h3 className="text-lg font-medium text-white mb-2">Generated Results</h3>
+                <p className="text-white/60 text-sm mb-4">
+                  Results from your recent PRD generation.
+                </p>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <ContextCard
+                    id="generated-prd-result"
+                    title="Generated PRD"
+                    description={`Generated ${new Date().toLocaleString()} • ${generatedPRD.length} characters`}
+                    onShowPrompt={handleShowGeneratedPRD}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Generate PRD Section */}
           <div className="pt-4 border-t border-white/10">
             <Button 
@@ -339,6 +388,14 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
         onClose={() => setTranscriptViewerOpen(false)}
         transcriptText={transcript.text}
         transcriptTitle={transcript.title}
+      />
+
+      {/* Generated PRD Content Sheet */}
+      <PromptDetails
+        isOpen={showGeneratedPRDPrompt}
+        onClose={() => setShowGeneratedPRDPrompt(false)}
+        promptTitle="Generated PRD Content"
+        directContent={generatedPRD || ''}
       />
     </>
   );
