@@ -8,6 +8,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Copy } from 'lucide-react';
 import { MarkdownViewer } from './MarkdownViewer';
 
 interface PromptDetailsProps {
@@ -16,11 +18,20 @@ interface PromptDetailsProps {
   promptTitle: string;
   promptPath?: string;
   directContent?: string;
+  showCharacterCount?: boolean;
 }
 
-export function PromptDetails({ isOpen, onClose, promptTitle, promptPath, directContent }: PromptDetailsProps) {
+export function PromptDetails({ isOpen, onClose, promptTitle, promptPath, directContent, showCharacterCount }: PromptDetailsProps) {
   const [markdownContent, setMarkdownContent] = useState<string>('Loading...');
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(markdownContent);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+    }
+  };
 
   const loadMarkdownContent = async () => {
     // If we have direct content, use it instead of loading from file
@@ -92,13 +103,31 @@ Sorry, we couldn't load the prompt content. Please try again later.
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-white">{promptTitle}</SheetTitle>
-          <SheetDescription className="text-white/60">
-            {isLoading ? 'Loading prompt content...' : directContent ? 'Generated content details' : 'Prompt details and context information'}
-          </SheetDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <SheetTitle className="text-white">{promptTitle}</SheetTitle>
+              <SheetDescription className="text-white/60">
+                {isLoading ? 'Loading prompt content...' : directContent ? 'Generated content details' : 'Prompt details and context information'}
+                {showCharacterCount && markdownContent && (
+                  <div className="mt-1 text-white/50 text-xs">
+                    {markdownContent.length} characters
+                  </div>
+                )}
+              </SheetDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleCopy}
+              className="text-white/60 hover:text-white hover:bg-white/10"
+            >
+              <Copy className="w-3 h-3 mr-1" />
+              Copy
+            </Button>
+          </div>
         </SheetHeader>
 
-        <div className="mt-6">
+        <div className="mt-6 flex-1 overflow-y-auto">
           <MarkdownViewer 
             content={markdownContent}
             className="text-white prose prose-invert max-w-none"

@@ -6,8 +6,6 @@ import { Card } from '@/components/ui/card';
 import { useAppStore } from '@/lib/store-zustand/useAppStore';
 import { ContextCard } from './ContextCard';
 import { PromptDetails } from './PromptDetails';
-import { PRDViewer } from './PRDViewer';
-import { TranscriptViewer } from './TranscriptViewer';
 import { Transcript } from '@/types';
 import { 
   Sparkles, 
@@ -35,8 +33,8 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
     path: ''
   });
   const [generatedPRD, setGeneratedPRD] = useState<string | null>(null);
-  const [prdViewerOpen, setPrdViewerOpen] = useState(false);
-  const [transcriptViewerOpen, setTranscriptViewerOpen] = useState(false);
+  const [prdDetailsOpen, setPrdDetailsOpen] = useState(false);
+  const [transcriptDetailsOpen, setTranscriptDetailsOpen] = useState(false);
   const [showGeneratedPRDPrompt, setShowGeneratedPRDPrompt] = useState(false);
 
   const handleShowPrompt = (title: string, path: string) => {
@@ -45,11 +43,11 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
   };
 
   const handleShowPRD = () => {
-    setPrdViewerOpen(true);
+    setPrdDetailsOpen(true);
   };
 
   const handleShowTranscript = () => {
-    setTranscriptViewerOpen(true);
+    setTranscriptDetailsOpen(true);
   };
 
   const handleShowGeneratedPRD = () => {
@@ -374,20 +372,22 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
         promptPath={promptDetailsConfig.path}
       />
 
-      {/* PRD Viewer Sheet */}
-      <PRDViewer
-        isOpen={prdViewerOpen}
-        onClose={() => setPrdViewerOpen(false)}
-        prd={transcript.generatedPRD || null}
-        transcriptTitle={transcript.title}
+      {/* PRD Details Sheet */}
+      <PromptDetails
+        isOpen={prdDetailsOpen}
+        onClose={() => setPrdDetailsOpen(false)}
+        promptTitle={`PRD: ${transcript.title}`}
+        directContent={transcript.generatedPRD?.content || ''}
+        showCharacterCount={true}
       />
 
-      {/* Transcript Viewer Sheet */}
-      <TranscriptViewer
-        isOpen={transcriptViewerOpen}
-        onClose={() => setTranscriptViewerOpen(false)}
-        transcriptText={transcript.text}
-        transcriptTitle={transcript.title}
+      {/* Transcript Details Sheet */}
+      <PromptDetails
+        isOpen={transcriptDetailsOpen}
+        onClose={() => setTranscriptDetailsOpen(false)}
+        promptTitle={`Raw Transcript: ${transcript.title}`}
+        directContent={transcript.text}
+        showCharacterCount={true}
       />
 
       {/* Generated PRD Content Sheet */}
@@ -396,6 +396,7 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
         onClose={() => setShowGeneratedPRDPrompt(false)}
         promptTitle="Generated PRD Content"
         directContent={generatedPRD || ''}
+        showCharacterCount={true}
       />
     </>
   );

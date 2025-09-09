@@ -63,11 +63,9 @@ src/
 │       ├── TranscriptCard.tsx          # Individual transcript cards with title/metadata
 │       ├── TranscriptDetails.tsx       # Sheet with editable title & triple tabs (Raw | Generate PRD | UI Designs)
 │       ├── ContextCard.tsx             # Checkable cards with PRD/prompt support
-│       ├── PromptDetails.tsx           # Nested Sheet for markdown display with localStorage caching
+│       ├── PromptDetails.tsx           # Unified content viewer with markdown display, copy functionality, and optional character count
 │       ├── MarkdownViewer.tsx          # Reusable markdown component with dark theme styling
 │       ├── GeneratePRDTab.tsx          # Dedicated PRD generation tab with auto-save
-│       ├── PRDViewer.tsx               # Full-screen PRD viewer with zoom/download
-│       ├── TranscriptViewer.tsx        # Raw transcript content viewer
 │       ├── UIDesignsTab.tsx            # UI design generation tab with per-transcript storage
 │       ├── ImageReferencesCard.tsx     # Context card with thumbnail display & Sheet-based upload
 │       ├── ImageUploadSheet.tsx        # Dedicated Sheet for drag & drop + click-to-browse image upload
@@ -136,17 +134,15 @@ src/
   - **Generate PRD Tab**: Structured prompt context with auto-save PRD functionality
   - **UI Designs Tab**: Comprehensive design generation with per-transcript image storage
 - **ContextCard** (`ContextCard.tsx`): Supports both prompt viewing and PRD display
-- **PRDViewer** (`PRDViewer.tsx`): Full-screen PRD viewer with copy/download
-- **TranscriptViewer** (`TranscriptViewer.tsx`): Raw transcript content viewer
+- **PromptDetails** (`PromptDetails.tsx`): Unified content viewer for all content types with markdown rendering, character count, and copy functionality
 
-### **6. Enhanced PRD Generation & Storage System**
-- **Auto-Save PRDs**: Generated PRDs automatically saved to transcript with timestamp and context metadata
-- **Generated Results Display**: Post-generation ContextCard appears showing PRD with "Show Prompt" functionality
-- **Direct Content Viewing**: PromptDetails component enhanced to display generated PRD content via `directContent` prop
-- **Ready PRD Context**: PRDs become reusable context for future generations  
-- **Persistent Storage**: PRDs survive browser refresh and app restarts
-- **Context Selection**: Structured prompts with App Description, Raw Transcription, Ready PRD, Master Prompts
-- **Single Source of Truth**: Raw Transcript tab content is definitive
+### **6. Unified Content Viewing System**
+- **PromptDetails Component**: Single component for viewing all content types (prompts, transcripts, PRDs)
+- **Markdown Rendering**: All content displayed with proper markdown formatting via MarkdownViewer
+- **Copy Functionality**: Built-in copy button for all content types
+- **Character Count**: Optional metadata display showing content length
+- **Direct Content Support**: Can display both file-based content and direct content via `directContent` prop
+- **Consistent UI**: Unified viewing experience across all content types with proper Sheet sizing
 
 ### **7. UI Design Generation System**
 - **Per-Transcript Storage**: Images, JSON prompts, designs stored per transcript
@@ -250,30 +246,20 @@ interface Transcript {
 22. **View Results**: Full-screen image viewer with zoom and download
 23. **Persistence**: All data saved per transcript and survives browser refresh
 
-## 🚀 Recent Major Improvements
+## 🚀 Key Architectural Benefits
 
-### **✅ Complete Persistence Solution (Current Session)**
-- **Fixed Critical Issue**: `skipHydration: true` was preventing ALL data loading
-- **Enhanced Storage**: Complete per-transcript data storage including images
-- **Data Migration**: Automatic migration from old storage keys
-- **Hydration Management**: Proper loading states and SSR handling
+### **✅ Unified Content System**
+- **Single Component**: PromptDetails handles all content viewing (markdown files, transcripts, PRDs)
+- **Consistent Experience**: Same UI/UX for all content types with proper Sheet sizing
+- **Copy Functionality**: Built-in copy button for easy content sharing
+- **Markdown Rendering**: All content properly formatted with dark theme styling
+- **Reduced Code**: Eliminated duplicate viewer components (TranscriptViewer, PRDViewer)
 
-### **✅ PRD Storage & Management**
-- **Auto-Save PRDs**: Generated PRDs automatically stored in transcript
-- **Ready PRD Context**: PRDs become reusable context cards
-- **Single Source of Truth**: Raw Transcript tab is definitive content source
-- **Persistent Viewing**: PRD viewer with full-screen display and download
-
-### **✅ Browser Extension Compatibility**
-- **Hydration Fix**: Handles extension attributes (`cz-shortcut-listen`, Grammarly, etc.)
-- **Clean Error Handling**: Graceful fallbacks for hydration mismatches
-- **Extension Monitoring**: Detects and cleans problematic attributes
-
-### **✅ File Management System**
-- **Image Serialization**: File → Base64 conversion for localStorage
-- **Size Limits**: 5MB per file limit to prevent storage bloat
-- **Type Validation**: Image-only uploads with comprehensive error handling
-- **Storage Quotas**: Warnings and size management
+### **✅ Complete Data Persistence**
+- **Enhanced Storage**: Complete per-transcript data storage including images and PRDs
+- **Hydration Management**: Proper SSR handling with loading states
+- **Browser Compatibility**: Handles extension attributes gracefully
+- **File Management**: Base64 serialization for localStorage persistence
 
 ## 🛠️ Development Commands
 
@@ -336,30 +322,24 @@ curl -X POST http://localhost:3010/api/gemini \
   -d '{"test":true}'
 ```
 
-## 📝 Session Change Log
+## 📝 Recent Updates
 
-### **2025-09-09 - Complete Persistence & Enhanced PRD Generation**
-- **Critical Fix**: Removed `skipHydration: true` - restored data loading functionality
-- **Enhanced Storage**: Complete per-transcript storage for PRDs and UI designs
-- **Data Migration**: Automatic migration from `voice-clarification-recordings` to `voice-transcription-transcripts`
-- **File Serialization**: Images converted to Base64 for localStorage persistence
-- **Hydration Handling**: Added `BodyAttributeHandler` and `HydrationErrorBoundary`
-- **Browser Compatibility**: Fixed extension attribute conflicts (password managers, Grammarly)
-- **PRD Auto-Save**: Generated PRDs automatically saved and reusable as context
-- **Enhanced PRD Display**: Added Generated Results section with ContextCard for immediate PRD viewing
-- **Direct Content Support**: Enhanced PromptDetails component to display generated content via `directContent` prop
-- **Single Source of Truth**: Raw Transcript tab content is definitive
-- **Per-Transcript UI Designs**: Images, JSON prompts, and designs stored per transcript
+### **2025-09-09 - Unified Content Viewing System**
+- **Component Unification**: Replaced TranscriptViewer and PRDViewer with enhanced PromptDetails
+- **Copy Functionality**: Added copy button to PromptDetails header for all content types
+- **Character Count**: Added optional character count metadata display
+- **Consistent Sizing**: All Sheets now use standard `sm:max-w-3xl` width
+- **Markdown Rendering**: All content (transcripts, PRDs, prompts) now rendered as markdown
+- **Code Cleanup**: Removed duplicate viewer components and simplified architecture
 
-### **Key Metrics (Latest Implementation)**
-- **Code Changes**: +950 lines added, -75 lines removed (including PRD enhancement)
-- **New Components**: 3 (BodyAttributeHandler, HydrationErrorBoundary, PRDViewer, TranscriptViewer)
-- **Enhanced Components**: 6 (Library, TranscriptDetails, GeneratePRDTab, PromptDetails, useAppStore)
-- **New Utilities**: 3 (file-serialization, migration-utils, updated storage keys)
-- **Problem Resolution**: Complete data persistence + hydration compatibility + enhanced PRD viewing
+### **Key Benefits**
+- **Reduced Complexity**: Single component for all content viewing needs
+- **Consistent UX**: Same interface and functionality across all content types
+- **Better Maintainability**: Less code duplication and easier updates
+- **Enhanced Functionality**: Copy and character count features now available for all content
 
 ---
 
 **Last Updated**: September 9, 2025  
-**Status**: ✅ Complete persistence system implemented, ✅ Hydration issues resolved, ✅ PRD auto-save working, ✅ Enhanced PRD viewing with Generated Results, ✅ Per-transcript UI design storage, ✅ Browser extension compatibility  
+**Status**: ✅ Unified content viewing system, ✅ Enhanced PromptDetails with copy functionality, ✅ Consistent Sheet sizing, ✅ Markdown rendering for all content types, ✅ Simplified architecture with reduced code duplication  
 **Next Session**: Performance optimization, export features, and advanced search functionality
