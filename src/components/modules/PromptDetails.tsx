@@ -22,7 +22,14 @@ export function PromptDetails({ isOpen, onClose, promptTitle, promptPath }: Prom
   const [isLoading, setIsLoading] = useState(false);
 
   const loadMarkdownContent = async () => {
-    const cacheKey = `prompt-content-${promptTitle}`;
+    if (!promptPath) {
+      setMarkdownContent('No file path provided');
+      return;
+    }
+
+    // Extract filename from path (e.g., 'MASTER_PROMPTS/GENERATE_PRD.md' -> 'GENERATE_PRD.md')
+    const filename = promptPath.split('/').pop() || promptPath;
+    const cacheKey = `prompt-content-${filename}`;
     
     // First check localStorage
     const cached = localStorage.getItem(cacheKey);
@@ -40,10 +47,10 @@ export function PromptDetails({ isOpen, onClose, promptTitle, promptPath }: Prom
       }
     }
 
-    // Fetch from API
+    // Fetch from API with correct file parameter
     setIsLoading(true);
     try {
-      const response = await fetch('/api/prompt-content');
+      const response = await fetch(`/api/prompt-content?file=${encodeURIComponent(filename)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -69,10 +76,10 @@ Sorry, we couldn't load the prompt content. Please try again later.
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && promptPath) {
       loadMarkdownContent();
     }
-  }, [isOpen]);
+  }, [isOpen, promptPath]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>

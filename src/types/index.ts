@@ -1,3 +1,34 @@
+export interface GeneratedPRD {
+  content: string;
+  generatedAt: Date;
+  contextUsed: string[];
+}
+
+export interface SerializableImageRef {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  dataUrl: string; // Base64 data URL for localStorage persistence
+  uploadedAt: Date;
+}
+
+export interface GeneratedUIDesign {
+  id: string;
+  url: string;
+  prompt: string;
+  createdAt: Date;
+  generationCount: number;
+}
+
+export interface TranscriptUIDesigns {
+  uploadedImages: SerializableImageRef[];
+  generatedJsonPrompt: string | null;
+  generatedDesigns: GeneratedUIDesign[];
+  designGenerationCount: number;
+  lastModified: Date;
+}
+
 export interface Transcript {
   id: string;
   title: string;
@@ -5,6 +36,8 @@ export interface Transcript {
   createdAt: Date;
   updatedAt: Date;
   status: 'processing' | 'completed' | 'error';
+  generatedPRD?: GeneratedPRD;
+  uiDesigns?: TranscriptUIDesigns;
 }
 
 export interface GeneratedDesign {

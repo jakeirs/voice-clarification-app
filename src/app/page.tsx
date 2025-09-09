@@ -7,34 +7,15 @@ import { Library } from '@/components/modules/Library';
 import { Card } from '@/components/ui/card';
 import { ClientOnlyProvider } from '@/components/ClientOnlyProvider';
 import { Mic, AlertCircle } from 'lucide-react';
+import '@/lib/cache-utils'; // Clear incorrect cached data
+import { runMigrationIfNeeded } from '@/lib/migration-utils';
 
 export default function Home() {
   const { error } = useAppStore();
 
-  // Preload markdown content on app startup
+  // Run data migration on app startup
   useEffect(() => {
-    const preloadMarkdownContent = async () => {
-      const cacheKey = 'prompt-content-Entire App PRD';
-      const cached = localStorage.getItem(cacheKey);
-      
-      if (!cached) {
-        try {
-          const response = await fetch('/api/prompt-content');
-          if (response.ok) {
-            const content = await response.text();
-            localStorage.setItem(cacheKey, JSON.stringify({
-              content,
-              timestamp: Date.now()
-            }));
-          }
-        } catch (error) {
-          // Silently fail - user will see loading state when they click Show Prompt
-          console.log('Failed to preload markdown content:', error);
-        }
-      }
-    };
-
-    preloadMarkdownContent();
+    runMigrationIfNeeded();
   }, []);
 
   return (

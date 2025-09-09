@@ -13,12 +13,12 @@ import { useAppStore } from '@/lib/store-zustand/useAppStore';
 import { TranscriptCard } from './TranscriptCard';
 import { TranscriptDetails } from './TranscriptDetails';
 import { Transcript } from '@/types';
-import { FileText, ChevronDown, Calendar, Clock } from 'lucide-react';
+import { FileText, ChevronDown, Calendar, Clock, Loader2 } from 'lucide-react';
 
 type SortOption = 'newest' | 'oldest' | 'title';
 
 export function Library() {
-  const { transcripts } = useAppStore();
+  const { transcripts, _hasHydrated } = useAppStore();
   const [selectedTranscript, setSelectedTranscript] = useState<Transcript | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
@@ -55,6 +55,23 @@ export function Library() {
   const handleCloseDetails = () => {
     setSelectedTranscript(null);
   };
+
+  // Show loading state until hydrated
+  if (!_hasHydrated) {
+    return (
+      <Card className="glass-secondary p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+            <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
+          </div>
+          <h3 className="text-xl font-medium text-white mb-2">Loading Transcripts</h3>
+          <p className="text-white/60 max-w-md mx-auto">
+            Please wait while we load your transcript library...
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   if (transcripts.length === 0) {
     return (

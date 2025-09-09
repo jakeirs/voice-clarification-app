@@ -80,8 +80,8 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent className="w-full sm:max-w-3xl">
-          <SheetHeader>
+        <SheetContent className="w-full sm:max-w-3xl flex flex-col h-full">
+          <SheetHeader className="flex-shrink-0">
             {/* Editable Title */}
             <div className="flex items-center space-x-2">
               {isEditingTitle ? (
@@ -120,9 +120,9 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6">
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'transcript' | 'generate-prd' | 'ui-designs')}>
-              <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10">
+          <div className="mt-6 flex-1 overflow-hidden flex flex-col">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'transcript' | 'generate-prd' | 'ui-designs')} className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10 flex-shrink-0">
                 <TabsTrigger value="transcript" className="text-white data-[state=active]:bg-white/10">
                   Raw Transcript
                 </TabsTrigger>
@@ -135,7 +135,7 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
               </TabsList>
 
               {/* Raw Transcript Tab */}
-              <TabsContent value="transcript" className="mt-6 space-y-4">
+              <TabsContent value="transcript" className="mt-6 space-y-4 flex-1 overflow-y-auto">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-white">Transcript</label>
@@ -183,19 +183,29 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
               </TabsContent>
 
               {/* Generate PRD Tab */}
-              <TabsContent value="generate-prd" className="mt-6 space-y-6">
-                <GeneratePRDTab transcript={transcript} />
+              <TabsContent value="generate-prd" className="mt-6 space-y-6 flex-1 overflow-y-auto">
+                <GeneratePRDTab 
+                  transcript={{
+                    ...transcript,
+                    text: editedText // Use current edited text as single source of truth
+                  }} 
+                />
               </TabsContent>
 
               {/* UI Designs Tab */}
-              <TabsContent value="ui-designs" className="mt-6 space-y-6">
-                <UIDesignsTab transcript={transcript} />
+              <TabsContent value="ui-designs" className="mt-6 space-y-6 flex-1 overflow-y-auto">
+                <UIDesignsTab 
+                  transcript={{
+                    ...transcript,
+                    text: editedText // Use current edited text as single source of truth
+                  }} 
+                />
               </TabsContent>
             </Tabs>
           </div>
 
           {/* Actions at bottom */}
-          <div className="flex justify-between pt-6 mt-6 border-t border-white/10">
+          <div className="flex justify-between pt-6 mt-6 border-t border-white/10 flex-shrink-0">
             <div>
               {confirmDelete ? (
                 <div className="flex space-x-2">

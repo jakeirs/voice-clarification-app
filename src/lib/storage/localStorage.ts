@@ -1,7 +1,8 @@
 export const STORAGE_KEYS = {
-  RECORDINGS: 'voice-clarification-recordings',
-  SETTINGS: 'voice-clarification-settings',
-  USER_PREFERENCES: 'voice-clarification-preferences',
+  TRANSCRIPTS: 'voice-transcription-transcripts', // Updated key name
+  RECORDINGS: 'voice-clarification-recordings', // Keep for migration
+  SETTINGS: 'voice-transcription-settings', // Updated key name  
+  USER_PREFERENCES: 'voice-transcription-preferences', // Updated key name
 } as const;
 
 export function setItem<T>(key: string, value: T): void {

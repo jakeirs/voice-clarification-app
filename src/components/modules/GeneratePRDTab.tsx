@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card';
 import { useAppStore } from '@/lib/store-zustand/useAppStore';
 import { ContextCard } from './ContextCard';
 import { PromptDetails } from './PromptDetails';
+import { PRDViewer } from './PRDViewer';
+import { TranscriptViewer } from './TranscriptViewer';
 import { Transcript } from '@/types';
 import { 
   Sparkles, 
@@ -24,6 +26,7 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
     selectedContextCards,
     isGeneratingJson: isGeneratingPRD,
     setIsGeneratingJson: setIsGeneratingPRD,
+    savePRDToTranscript,
   } = useAppStore();
   
   const [promptDetailsOpen, setPromptDetailsOpen] = useState(false);
@@ -32,10 +35,20 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
     path: ''
   });
   const [generatedPRD, setGeneratedPRD] = useState<string | null>(null);
+  const [prdViewerOpen, setPrdViewerOpen] = useState(false);
+  const [transcriptViewerOpen, setTranscriptViewerOpen] = useState(false);
 
   const handleShowPrompt = (title: string, path: string) => {
     setPromptDetailsConfig({ title, path });
     setPromptDetailsOpen(true);
+  };
+
+  const handleShowPRD = () => {
+    setPrdViewerOpen(true);
+  };
+
+  const handleShowTranscript = () => {
+    setTranscriptViewerOpen(true);
   };
 
   const handleGeneratePRD = async () => {
@@ -73,6 +86,8 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
         processingTime: data.processingTime
       });
       
+      // Auto-save PRD to transcript
+      savePRDToTranscript(transcript.id, data.result, selectedContextCards);
       setGeneratedPRD(data.result);
     } catch (error) {
       console.error('❌ [PRD Generation] Error:', error);
@@ -84,43 +99,81 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
 
   // Frontend prompt construction function
   const buildFrontendPrompt = async (selectedCards: string[], transcriptText: string): Promise<string> => {
+    console.log('🔍 [Prompt Builder] Starting with selected cards:', selectedCards);
+    console.log('📝 [Prompt Builder] Transcript length:', transcriptText.length);
+    
     let prompt = 'These are context:\n\n';
+    let sectionsAdded = [];
     
     // App Description Section (conditional)
     if (selectedCards.includes('app-description')) {
+      console.log('✅ [Prompt Builder] Processing app-description...');
       try {
         const response = await fetch('/api/prompt-content?file=Description_of_app.md');
         if (response.ok) {
           const content = await response.text();
           prompt += `<App-description>\n${content}\n</App-description>\n\n`;
-          console.log('📄 [Prompt Builder] Added app description section');
+          sectionsAdded.push('App Description');
+          console.log('📄 [Prompt Builder] ✅ Added app description section (', content.length, 'chars)');
+        } else {
+          console.error('❌ [Prompt Builder] App description fetch failed:', response.status);
         }
       } catch (error) {
         console.warn('⚠️ [Prompt Builder] Failed to load app description:', error);
       }
+    } else {
+      console.log('⏭️ [Prompt Builder] Skipping app-description (not selected)');
     }
 
     // Raw Transcription Section (conditional)
     if (selectedCards.includes('raw-transcription')) {
+      console.log('✅ [Prompt Builder] Processing raw-transcription...');
       prompt += `<Raw-transcription>\n${transcriptText}\n</Raw-transcription>\n\n`;
-      console.log('📝 [Prompt Builder] Added raw transcription section');
+      sectionsAdded.push('Raw Transcription');
+      console.log('📝 [Prompt Builder] ✅ Added raw transcription section (', transcriptText.length, 'chars)');
+    } else {
+      console.log('⏭️ [Prompt Builder] Skipping raw-transcription (not selected)');
+    }
+
+    // Ready PRD Section (conditional)
+    if (selectedCards.includes('ready-prd')) {
+      console.log('✅ [Prompt Builder] Processing ready-prd...');
+      const transcript = useAppStore.getState().transcripts.find((t: Transcript) => t.id === useAppStore.getState().currentTranscript?.id);
+      if (transcript?.generatedPRD) {
+        prompt += `<PRD>\n${transcript.generatedPRD.content}\n</PRD>\n\n`;
+        sectionsAdded.push('Ready PRD');
+        console.log('📋 [Prompt Builder] ✅ Added ready PRD section (', transcript.generatedPRD.content.length, 'chars)');
+      } else {
+        console.warn('⚠️ [Prompt Builder] Ready PRD selected but no PRD found');
+      }
+    } else {
+      console.log('⏭️ [Prompt Builder] Skipping ready-prd (not selected)');
     }
 
     // Master PRD Prompt (always included at the end)
     if (selectedCards.includes('master-prd-prompt')) {
+      console.log('✅ [Prompt Builder] Processing master-prd-prompt...');
       try {
         const response = await fetch('/api/prompt-content?file=GENERATE_PRD.md');
         if (response.ok) {
           const content = await response.text();
           prompt += content;
-          console.log('📋 [Prompt Builder] Added master PRD prompt section');
+          sectionsAdded.push('Master PRD Prompt');
+          console.log('📋 [Prompt Builder] ✅ Added master PRD prompt section (', content.length, 'chars)');
+        } else {
+          console.error('❌ [Prompt Builder] Master PRD prompt fetch failed:', response.status);
         }
       } catch (error) {
         console.warn('⚠️ [Prompt Builder] Failed to load master PRD prompt:', error);
         prompt += 'Please generate a comprehensive Product Requirements Document (PRD) based on the provided context.';
+        sectionsAdded.push('Fallback PRD Prompt');
       }
+    } else {
+      console.log('⏭️ [Prompt Builder] Skipping master-prd-prompt (not selected)');
     }
 
+    console.log('🏁 [Prompt Builder] Final sections added:', sectionsAdded);
+    console.log('📊 [Prompt Builder] Final prompt length:', prompt.length);
     return prompt;
   };
 
@@ -166,6 +219,17 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Ready PRD Card - Only show if PRD exists */}
+            {transcript.generatedPRD && (
+              <ContextCard
+                id="ready-prd"
+                title="Ready PRD"
+                description="Generated PRD for this transcript"
+                cardType="prd"
+                onShowPRD={handleShowPRD}
+              />
+            )}
+
             {/* App Description Card */}
             <ContextCard
               id="app-description"
@@ -179,10 +243,7 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
               id="raw-transcription"
               title="Raw Transcription"
               description="Current transcript content for context"
-              onShowPrompt={() => {
-                // For raw transcription, we can show it in a simple modal
-                // or create a specialized viewer
-              }}
+              onShowPrompt={handleShowTranscript}
             />
 
             {/* Master Prompt Card */}
@@ -262,6 +323,22 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
         onClose={() => setPromptDetailsOpen(false)}
         promptTitle={promptDetailsConfig.title}
         promptPath={promptDetailsConfig.path}
+      />
+
+      {/* PRD Viewer Sheet */}
+      <PRDViewer
+        isOpen={prdViewerOpen}
+        onClose={() => setPrdViewerOpen(false)}
+        prd={transcript.generatedPRD || null}
+        transcriptTitle={transcript.title}
+      />
+
+      {/* Transcript Viewer Sheet */}
+      <TranscriptViewer
+        isOpen={transcriptViewerOpen}
+        onClose={() => setTranscriptViewerOpen(false)}
+        transcriptText={transcript.text}
+        transcriptTitle={transcript.title}
       />
     </>
   );

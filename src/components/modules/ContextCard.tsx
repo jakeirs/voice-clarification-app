@@ -16,9 +16,11 @@ interface ContextCardProps {
   title: string;
   description?: string;
   onShowPrompt?: () => void;
+  onShowPRD?: () => void;
+  cardType?: 'prompt' | 'prd';
 }
 
-export function ContextCard({ id, title, description, onShowPrompt }: ContextCardProps) {
+export function ContextCard({ id, title, description, onShowPrompt, onShowPRD, cardType = 'prompt' }: ContextCardProps) {
   const { selectedContextCards, toggleContextCard } = useAppStore();
   const isSelected = selectedContextCards.includes(id);
 
@@ -50,11 +52,15 @@ export function ContextCard({ id, title, description, onShowPrompt }: ContextCar
             <DropdownMenuItem 
               onClick={(e) => {
                 e.stopPropagation();
-                onShowPrompt?.();
+                if (cardType === 'prd') {
+                  onShowPRD?.();
+                } else {
+                  onShowPrompt?.();
+                }
               }}
               className="text-white hover:bg-white/10"
             >
-              Show Prompt
+              {cardType === 'prd' ? 'Show PRD' : 'Show Prompt'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
