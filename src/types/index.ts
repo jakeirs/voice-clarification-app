@@ -1,11 +1,9 @@
 export interface Transcript {
   id: string;
+  title: string;
   text: string;
-  audioUrl?: string;
-  audioBlob?: Blob;
   createdAt: Date;
   updatedAt: Date;
-  duration?: number;
   status: 'processing' | 'completed' | 'error';
 }
 
@@ -16,4 +14,6 @@ export interface AppState {
   isPaused: boolean;
   isProcessing: boolean;
   error: string | null;
+  selectedContextCards: string[];
+  activeTab: 'transcript' | 'generate-prd';
 }

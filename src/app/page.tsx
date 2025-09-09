@@ -1,13 +1,40 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAppStore } from '@/lib/store-zustand/useAppStore';
 import { VoiceRecorder } from '@/components/modules/VoiceRecorder';
-import { TranscriptLibrary } from '@/components/modules/TranscriptLibrary';
+import { Library } from '@/components/modules/Library';
 import { Card } from '@/components/ui/card';
-import { Mic, FileText, AlertCircle } from 'lucide-react';
+import { Mic, AlertCircle } from 'lucide-react';
 
 export default function Home() {
-  const { transcripts, error } = useAppStore();
+  const { error } = useAppStore();
+
+  // Preload markdown content on app startup
+  useEffect(() => {
+    const preloadMarkdownContent = async () => {
+      const cacheKey = 'prompt-content-Entire App PRD';
+      const cached = localStorage.getItem(cacheKey);
+      
+      if (!cached) {
+        try {
+          const response = await fetch('/api/prompt-content');
+          if (response.ok) {
+            const content = await response.text();
+            localStorage.setItem(cacheKey, JSON.stringify({
+              content,
+              timestamp: Date.now()
+            }));
+          }
+        } catch (error) {
+          // Silently fail - user will see loading state when they click Show Prompt
+          console.log('Failed to preload markdown content:', error);
+        }
+      }
+    };
+
+    preloadMarkdownContent();
+  }, []);
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -51,23 +78,7 @@ export default function Home() {
           </Card>
 
           {/* Transcript Library */}
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-white">Transcript Library</h2>
-                <p className="text-sm text-white/70">
-                  {transcripts.length > 0 
-                    ? `${transcripts.length} transcript${transcripts.length === 1 ? '' : 's'} saved`
-                    : 'Your transcripts will appear here'
-                  }
-                </p>
-              </div>
-            </div>
-            <TranscriptLibrary />
-          </div>
+          <Library />
         </div>
       </div>
     </div>

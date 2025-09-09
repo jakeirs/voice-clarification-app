@@ -23,6 +23,11 @@ interface AppStore extends AppState {
   setError: (error: string | null) => void;
   clearError: () => void;
   
+  // Tab and context management
+  setActiveTab: (tab: 'transcript' | 'generate-prd') => void;
+  toggleContextCard: (cardId: string) => void;
+  clearContextCards: () => void;
+  
   // Utility actions
   clearAllTranscripts: () => void;
 }
@@ -34,6 +39,8 @@ const initialState: AppState = {
   isPaused: false,
   isProcessing: false,
   error: null,
+  selectedContextCards: [],
+  activeTab: 'transcript',
 };
 
 export const useAppStore = create<AppStore>()(
@@ -103,6 +110,23 @@ export const useAppStore = create<AppStore>()(
       
       clearError: () => {
         set({ error: null });
+      },
+      
+      // Tab and context management
+      setActiveTab: (tab) => {
+        set({ activeTab: tab });
+      },
+      
+      toggleContextCard: (cardId) => {
+        set((state) => ({
+          selectedContextCards: state.selectedContextCards.includes(cardId)
+            ? state.selectedContextCards.filter(id => id !== cardId)
+            : [...state.selectedContextCards, cardId]
+        }));
+      },
+      
+      clearContextCards: () => {
+        set({ selectedContextCards: [] });
       },
       
       // Utility actions

@@ -249,18 +249,20 @@ export function VoiceRecorder() {
     setShowTranscript(false);
   }, []);
 
+  const generateTitle = useCallback((text: string): string => {
+    const words = text.trim().split(/\s+/);
+    const firstWords = words.slice(0, 6).join(' ');
+    return firstWords.length > 40 ? firstWords.substring(0, 40) + '...' : firstWords || 'Untitled Transcript';
+  }, []);
+
   const handleSaveTranscript = useCallback(() => {
-    if (transcript.trim() && recordedChunks.length > 0) {
-      const finalBlob = new Blob(recordedChunks, { type: 'audio/wav' });
-      
+    if (transcript.trim()) {
       const newTranscript: Transcript = {
         id: generateRecordingId(),
+        title: generateTitle(transcript.trim()),
         text: transcript.trim(),
-        audioBlob: finalBlob,
-        audioUrl: URL.createObjectURL(finalBlob),
         createdAt: new Date(),
         updatedAt: new Date(),
-        duration: duration,
         status: 'completed',
       };
       
@@ -272,7 +274,7 @@ export function VoiceRecorder() {
       setTranscript('');
       setShowTranscript(false);
     }
-  }, [transcript, recordedChunks, duration, addTranscript]);
+  }, [transcript, addTranscript, generateTitle]);
 
   useEffect(() => {
     return () => {
