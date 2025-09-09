@@ -209,6 +209,8 @@ export const useAppStore = create<AppStore>()(
           }));
         }
       },
+      // Prevent hydration mismatch by skipping server-side hydration
+      skipHydration: true,
     }
   )
 );

@@ -41,12 +41,17 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
   const handleGeneratePRD = async () => {
     setIsGeneratingPRD(true);
     try {
-      // Prepare context data for structured prompt
-      const contextData = {
-        selectedCards: selectedContextCards,
-        transcript: transcript.text,
-        transcriptId: transcript.id
-      };
+      console.log('🚀 [PRD Generation] Starting prompt construction...');
+      console.log('📋 [PRD Generation] Selected context cards:', selectedContextCards);
+      
+      // Build the structured prompt on frontend
+      const structuredPrompt = await buildFrontendPrompt(selectedContextCards, transcript.text);
+      
+      console.log('📝 [PRD Generation] Constructed prompt:');
+      console.log('─'.repeat(80));
+      console.log(structuredPrompt);
+      console.log('─'.repeat(80));
+      console.log(`📊 [PRD Generation] Prompt stats: ${structuredPrompt.length} characters, ${structuredPrompt.split('\n').length} lines`);
 
       const response = await fetch('/api/gemini', {
         method: 'POST',
@@ -54,8 +59,7 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contextData,
-          useStructuredPrompt: true
+          prompt: structuredPrompt
         }),
       });
 
@@ -64,13 +68,60 @@ export function GeneratePRDTab({ transcript }: GeneratePRDTabProps) {
       }
 
       const data = await response.json();
+      console.log('✅ [PRD Generation] Response received:', {
+        length: data.result?.length || 0,
+        processingTime: data.processingTime
+      });
+      
       setGeneratedPRD(data.result);
     } catch (error) {
-      console.error('Error generating PRD:', error);
+      console.error('❌ [PRD Generation] Error:', error);
       // You might want to add error handling UI here
     } finally {
       setIsGeneratingPRD(false);
     }
+  };
+
+  // Frontend prompt construction function
+  const buildFrontendPrompt = async (selectedCards: string[], transcriptText: string): Promise<string> => {
+    let prompt = 'These are context:\n\n';
+    
+    // App Description Section (conditional)
+    if (selectedCards.includes('app-description')) {
+      try {
+        const response = await fetch('/api/prompt-content?file=Description_of_app.md');
+        if (response.ok) {
+          const content = await response.text();
+          prompt += `<App-description>\n${content}\n</App-description>\n\n`;
+          console.log('📄 [Prompt Builder] Added app description section');
+        }
+      } catch (error) {
+        console.warn('⚠️ [Prompt Builder] Failed to load app description:', error);
+      }
+    }
+
+    // Raw Transcription Section (conditional)
+    if (selectedCards.includes('raw-transcription')) {
+      prompt += `<Raw-transcription>\n${transcriptText}\n</Raw-transcription>\n\n`;
+      console.log('📝 [Prompt Builder] Added raw transcription section');
+    }
+
+    // Master PRD Prompt (always included at the end)
+    if (selectedCards.includes('master-prd-prompt')) {
+      try {
+        const response = await fetch('/api/prompt-content?file=GENERATE_PRD.md');
+        if (response.ok) {
+          const content = await response.text();
+          prompt += content;
+          console.log('📋 [Prompt Builder] Added master PRD prompt section');
+        }
+      } catch (error) {
+        console.warn('⚠️ [Prompt Builder] Failed to load master PRD prompt:', error);
+        prompt += 'Please generate a comprehensive Product Requirements Document (PRD) based on the provided context.';
+      }
+    }
+
+    return prompt;
   };
 
   const handleCopyPRD = async () => {

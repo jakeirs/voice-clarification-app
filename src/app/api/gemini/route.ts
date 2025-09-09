@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { buildPRDPrompt, PromptContextData } from '@/lib/promptBuilder';
 
 // Initialize Google AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || '');
@@ -19,45 +18,24 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { prompt, test = false, contextData, useStructuredPrompt } = body;
+    const { prompt, test = false } = body;
     
-    let finalPrompt = prompt;
-    
-    if (!finalPrompt && !test) {
+    if (!prompt && !test) {
       console.error('❌ No prompt provided in request');
       return NextResponse.json(
         { error: 'Prompt is required' },
         { status: 400 }
       );
     }
-    
-    // If using structured prompt for PRD generation
-    if (useStructuredPrompt && contextData) {
-      console.log('📖 Building structured PRD prompt...');
-      
-      const promptContextData: PromptContextData = {
-        selectedCards: contextData.selectedCards,
-        transcript: contextData.transcript,
-        transcripts: contextData.transcripts || []
-      };
-      
-      finalPrompt = await buildPRDPrompt(promptContextData);
-      
-      console.log('📊 Structured PRD prompt created:', {
-        promptLength: finalPrompt.length,
-        sectionsIncluded: contextData.selectedCards?.length || 0
-      });
-    }
 
     console.log('📝 Request details:', {
       isTest: test,
-      promptLength: finalPrompt?.length || 0,
-      hasPrompt: !!finalPrompt,
-      isStructured: useStructuredPrompt
+      promptLength: prompt?.length || 0,
+      hasPrompt: !!prompt
     });
     
     // For connectivity test, use a simple prompt
-    const testPrompt = test ? 'Say "Hello! Gemini API is working correctly."' : finalPrompt;
+    const testPrompt = test ? 'Say "Hello! Gemini API is working correctly."' : prompt;
     
     console.log('🧠 Initializing Gemini 2.5 Pro model...');
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
@@ -94,7 +72,6 @@ export async function POST(request: NextRequest) {
       processingTime,
       status: 'completed',
       isTest: test,
-      isStructured: useStructuredPrompt || false,
     });
     
   } catch (error: unknown) {

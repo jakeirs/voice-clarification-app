@@ -1,11 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const filePath = join(process.cwd(), 'public', 'MASTER_PROMPTS', 'Description_of_app.md');
+    // Get filename from query params
+    const { searchParams } = new URL(request.url);
+    const filename = searchParams.get('file') || 'Description_of_app.md';
+    
+    // Security check: only allow .md files from MASTER_PROMPTS directory
+    if (!filename.endsWith('.md') || filename.includes('..')) {
+      return NextResponse.json(
+        { error: 'Invalid file request' },
+        { status: 400 }
+      );
+    }
+    
+    const filePath = join(process.cwd(), 'public', 'MASTER_PROMPTS', filename);
     const fileContent = readFileSync(filePath, 'utf8');
+    
+    console.log(`📄 Served prompt content: ${filename} (${fileContent.length} chars)`);
     
     return new Response(fileContent, {
       headers: {

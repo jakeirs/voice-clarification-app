@@ -5,6 +5,7 @@ import { useAppStore } from '@/lib/store-zustand/useAppStore';
 import { VoiceRecorder } from '@/components/modules/VoiceRecorder';
 import { Library } from '@/components/modules/Library';
 import { Card } from '@/components/ui/card';
+import { ClientOnlyProvider } from '@/components/ClientOnlyProvider';
 import { Mic, AlertCircle } from 'lucide-react';
 
 export default function Home() {
@@ -74,11 +75,15 @@ export default function Home() {
                 <p className="text-sm text-white/70">Start recording and get instant transcription</p>
               </div>
             </div>
-            <VoiceRecorder />
+            <ClientOnlyProvider>
+              <VoiceRecorder />
+            </ClientOnlyProvider>
           </Card>
 
           {/* Transcript Library */}
-          <Library />
+          <ClientOnlyProvider>
+            <Library />
+          </ClientOnlyProvider>
         </div>
       </div>
     </div>

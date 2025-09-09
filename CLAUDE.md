@@ -64,7 +64,8 @@ src/
 │       ├── MarkdownViewer.tsx          # Reusable markdown component with dark theme styling
 │       ├── GeneratePRDTab.tsx          # Dedicated PRD generation tab with structured prompts
 │       ├── UIDesignsTab.tsx            # UI design generation tab with context selection
-│       ├── ImageReferencesCard.tsx     # Drag & drop + click-to-browse image upload component
+│       ├── ImageReferencesCard.tsx     # Context card with thumbnail display & Sheet-based upload
+       ├── ImageUploadSheet.tsx        # Dedicated Sheet for drag & drop + click-to-browse image upload
 │       ├── ImageViewerDialog.tsx       # Full-screen image viewer with zoom/download
 │       └── ExamplesModal.tsx           # Reference examples gallery modal
 ├── lib/
@@ -142,7 +143,9 @@ src/
 - **Structured Format**: Conditional XML-like sections (`<App-description>`, `<PRD>`, `<Provided-image-references>`)
 
 ### **7. UI Design Generation System**
-- **Image Management**: Drag & drop + click-to-browse file upload with preview
+- **Image Management**: Sheet-based upload system with thumbnail display in context cards
+- **ImageReferencesCard**: Displays thumbnails when images uploaded, click-to-upload button when empty
+- **ImageUploadSheet**: Dedicated Sheet with drag & drop + click-to-browse functionality
 - **Context Selection**: Multiple context card types (App Description, PRDs, Master Prompts, Images)
 - **JSON Prompt Generation**: Structured prompts using Gemini 2.5 Pro for design specifications
 - **Design Generation**: Fal AI Flux Schnell model for UI mockup creation (1-3 variations)
@@ -202,7 +205,7 @@ interface AppState {
 - **TranscriptCard**: Individual previews showing titles, truncated text, metadata
 - **TranscriptDetails Sheet**: Editable title, triple tabs (Raw Transcript | Generate PRD | UI Designs)
 - **ContextCard**: Checkable cards with dropdown menu for prompt viewing
-- **ImageReferencesCard**: Drag & drop + click-to-browse image upload with preview
+- **ImageReferencesCard**: Context card showing image thumbnails with Sheet-based upload
 - **ImageViewerDialog**: Full-screen image viewer with zoom/download controls
 - **PromptDetails Sheet**: Nested markdown viewer with dark theme styling
 - **Error Display**: Inline error messages with icons
@@ -244,7 +247,7 @@ interface AppState {
 - ✅ **Structured Prompts**: Implemented conditional XML sections for both PRD and UI design generation
 - ✅ **Context Management**: Enhanced context cards with Raw Transcription, Master Prompts, and PRD selection
 - ✅ **UI Design Generation**: Complete workflow from image upload to design generation with Fal AI
-- ✅ **Image Management**: Drag & drop + click-to-browse with full-screen viewer and zoom controls
+- ✅ **Image Management**: Sheet-based upload system with thumbnail display and full-screen viewer
 - ✅ **Markdown Integration**: Multiple master prompts (GENERATE_PRD.md, GEN_DESIGN.md) with caching
 - ✅ **Sorting & Filtering**: Date-based sorting with shadcn dropdown (newest, oldest, by title)
 - ✅ **Title Auto-generation**: Automatic title creation from first 6 words of transcript
@@ -278,7 +281,7 @@ npm run lint         # ESLint checking
 - 🗂️ Context card selection and triple-tab navigation
 - 🏗️ Structured prompt building with conditional XML sections
 - 🎨 UI design generation workflow and image management
-- 📸 Image upload (drag & drop + click-to-browse) and viewer functionality
+- 📸 Sheet-based image upload system with thumbnail display and viewer functionality
 - ❌ Error details with stack traces
 
 ## 📋 TODO for Next AI Agent
@@ -352,23 +355,32 @@ curl -X POST http://localhost:3006/api/gemini \
 - **Structured Prompt Builder**: Conditional XML sections with prompt builder utility
 - **UI Designs Tab**: Complete design generation workflow with image uploads
 - **Enhanced Generate PRD**: Raw Transcription and Master Prompt context cards
-- **New Components**: GeneratePRDTab, UIDesignsTab, ImageReferencesCard, ImageViewerDialog, ExamplesModal (5 new components)
-- **File Upload System**: Drag & drop + click-to-browse with image preview and management
+- **New Components**: GeneratePRDTab, UIDesignsTab, ImageReferencesCard, ImageUploadSheet, ImageViewerDialog, ExamplesModal (6 new components)
+- **File Upload System**: Sheet-based upload with drag & drop + click-to-browse functionality
 - **API Enhancements**: generate-json-prompt and generate-design routes with Fal AI integration
 - **Image Management**: Full-screen viewer with zoom, download, and gallery functionality
 - **Dependencies**: Added `@radix-ui/react-slider`, `react-dropzone` for enhanced UI controls
 
+### **2025-09-09 - Enhanced Image Upload UX**
+- **Sheet-based Upload**: Moved drag & drop functionality from inline to dedicated Sheet
+- **Thumbnail Display**: ImageReferencesCard now shows uploaded images as thumbnails
+- **Click-to-Upload**: Clean upload button interface when no images present
+- **New Component**: ImageUploadSheet with enhanced file management
+- **Better UX**: Separation of viewing (thumbnails) from uploading (Sheet)
+- **File Management**: Preview, remove individual files, clear all functionality
+- **Responsive Design**: Grid layout with overflow indication (+count for >5 images)
+
 ### **Key Metrics (Complete Implementation)**
-- **Code Changes**: +1687 lines added, -133 lines removed (comprehensive system overhaul)
-- **Components**: 11 new components added, 6 existing components enhanced
+- **Code Changes**: +1927 lines added, -203 lines removed (comprehensive system overhaul)
+- **Components**: 12 new components added, 6 existing components enhanced  
 - **New Dependencies**: 5 major packages (markdown editor, tabs, dropdown, slider, dropzone)
 - **API Integration**: 4 API routes (transcribe, gemini, generate-json-prompt, generate-design)
 - **User Experience**: Evolved from basic transcription to full AI-powered design generation platform
 - **Structured Prompts**: Conditional XML format for both PRD and UI design generation
-- **Image Management**: Complete upload, preview, generation, and viewing system
+- **Image Management**: Complete Sheet-based upload, thumbnail display, generation, and viewing system
 
 ---
 
 **Last Updated**: September 9, 2025  
-**Status**: ✅ Core functionality complete, ✅ Structured prompt system complete, ✅ UI design generation complete, ✅ Enhanced PRD generation, ✅ Image management system  
+**Status**: ✅ Core functionality complete, ✅ Structured prompt system complete, ✅ UI design generation complete, ✅ Enhanced PRD generation, ✅ Sheet-based image upload system  
 **Next Session**: Performance optimization, error handling improvements, and export functionality
