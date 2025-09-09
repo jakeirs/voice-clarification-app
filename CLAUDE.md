@@ -2,14 +2,14 @@
 
 ## 🎯 Project Overview
 
-This is a **Voice Transcription App** built with Next.js that allows users to record audio with pause/resume functionality and get AI-powered transcriptions via Fal AI. The app has been completely rebuilt from a complex "voice clarification" system to a clean, focused transcription tool.
+This is a **Voice Transcription App** built with Next.js that allows users to record audio with pause/resume functionality and get AI-powered transcriptions via Fal AI. The app has been completely rebuilt from a complex "voice clarification" system to a clean, focused transcription tool with comprehensive data persistence.
 
 ## 🏗️ Current Architecture
 
 ### **Tech Stack**
 - **Framework**: Next.js 15.5.2 (with Turbopack)
 - **Frontend**: React 19.1.0, TypeScript
-- **State Management**: Zustand with persistence
+- **State Management**: Zustand with complete localStorage persistence
 - **Styling**: Tailwind CSS with glass morphism theme
 - **UI Components**: Custom components + shadcn/ui (Button, Card, Textarea, Sheet)
 - **AI Integration**: Fal AI speech-to-text API + Google Gemini 2.5 Pro
@@ -43,8 +43,8 @@ src/
 │   │   ├── generate-json-prompt/route.ts # UI design JSON prompt generation with structured format
 │   │   ├── generate-design/route.ts     # Fal AI image generation for UI mockups
 │   │   └── prompt-content/route.ts      # Markdown content serving endpoint
-│   ├── layout.tsx                       # Root layout
-│   └── page.tsx                         # Main app page with markdown preloading
+│   ├── layout.tsx                       # Root layout with hydration handling
+│   └── page.tsx                         # Main app page with data migration
 ├── components/
 │   ├── ui/
 │   │   ├── button.tsx                  # shadcn Button component
@@ -54,30 +54,38 @@ src/
 │   │   ├── tabs.tsx                    # shadcn Tabs component
 │   │   ├── slider.tsx                  # shadcn Slider component
 │   │   └── dropdown-menu.tsx           # shadcn Dropdown component
+│   ├── BodyAttributeHandler.tsx        # Post-hydration browser extension cleanup
+│   ├── HydrationErrorBoundary.tsx      # Graceful hydration error handling
+│   ├── ClientOnlyProvider.tsx          # SSR-safe client-only wrapper
 │   └── modules/
 │       ├── VoiceRecorder.tsx           # Main recording component with pause/resume & title generation
-│       ├── Library.tsx                 # Large Card with sorting dropdown & responsive grid
+│       ├── Library.tsx                 # Large Card with sorting dropdown & hydration-aware loading
 │       ├── TranscriptCard.tsx          # Individual transcript cards with title/metadata
 │       ├── TranscriptDetails.tsx       # Sheet with editable title & triple tabs (Raw | Generate PRD | UI Designs)
-│       ├── ContextCard.tsx             # Checkable cards with three-dot menu for context prompts
+│       ├── ContextCard.tsx             # Checkable cards with PRD/prompt support
 │       ├── PromptDetails.tsx           # Nested Sheet for markdown display with localStorage caching
 │       ├── MarkdownViewer.tsx          # Reusable markdown component with dark theme styling
-│       ├── GeneratePRDTab.tsx          # Dedicated PRD generation tab with structured prompts
-│       ├── UIDesignsTab.tsx            # UI design generation tab with context selection
+│       ├── GeneratePRDTab.tsx          # Dedicated PRD generation tab with auto-save
+│       ├── PRDViewer.tsx               # Full-screen PRD viewer with zoom/download
+│       ├── TranscriptViewer.tsx        # Raw transcript content viewer
+│       ├── UIDesignsTab.tsx            # UI design generation tab with per-transcript storage
 │       ├── ImageReferencesCard.tsx     # Context card with thumbnail display & Sheet-based upload
-       ├── ImageUploadSheet.tsx        # Dedicated Sheet for drag & drop + click-to-browse image upload
+│       ├── ImageUploadSheet.tsx        # Dedicated Sheet for drag & drop + click-to-browse image upload
 │       ├── ImageViewerDialog.tsx       # Full-screen image viewer with zoom/download
 │       └── ExamplesModal.tsx           # Reference examples gallery modal
 ├── lib/
 │   ├── store-zustand/
-│   │   └── useAppStore.ts              # Enhanced Zustand store with UI designs state management
+│   │   └── useAppStore.ts              # Enhanced Zustand store with complete persistence
 │   ├── storage/
-│   │   └── localStorage.ts             # Storage keys
+│   │   └── localStorage.ts             # Storage keys and utilities
 │   ├── promptBuilder.ts                # Structured prompt builder with conditional XML sections
 │   ├── audioUtils.ts                   # Audio utility functions
+│   ├── file-serialization.ts          # File to Base64 conversion for localStorage
+│   ├── migration-utils.ts              # Data migration from old storage keys
+│   ├── cache-utils.ts                  # Prompt content cache management
 │   └── utils.ts                        # General utilities (cn function)
 ├── types/
-│   └── index.ts                        # Enhanced TypeScript types with UI designs & structured prompts
+│   └── index.ts                        # Complete TypeScript types with PRD & UI design storage
 └── public/
     ├── MASTER_PROMPTS/
     │   ├── Description_of_app.md       # App description context
@@ -89,7 +97,6 @@ src/
         ├── exampleApp2.jpg
         └── exampleApp3.jpg
 ```
-
 
 ## 🎙️ Key Features Implemented
 
@@ -114,143 +121,155 @@ src/
 - **Error Handling**: Comprehensive error logging with API-specific error detection
 - **Processing Metrics**: Response time tracking and metadata
 
-### **4. Enhanced Library System**
-- **Library Component** (`Library.tsx`): Large Card with sorting dropdown (newest first by default)
+### **4. Complete Data Persistence System**
+- **Zustand Store**: Enhanced with proper hydration and complete transcript storage
+- **LocalStorage**: All transcript data persists across browser sessions
+- **Data Migration**: Automatic migration from old storage keys to new structure
+- **Hydration Handling**: SSR-safe with loading states until data loads
+- **File Serialization**: Images converted to Base64 for localStorage compatibility
+
+### **5. Enhanced Library System**
+- **Library Component** (`Library.tsx`): Large Card with sorting dropdown, hydration-aware loading
 - **TranscriptCard** (`TranscriptCard.tsx`): Individual cards showing editable titles, truncated text, metadata
 - **TranscriptDetails** (`TranscriptDetails.tsx`): Sheet with editable title and triple tabs
-  - **Raw Transcript Tab**: Editable textarea with original functionality
-  - **Generate PRD Tab**: Structured prompt context selection with Raw Transcription & Master Prompt cards
-  - **UI Designs Tab**: Comprehensive design generation workflow with image uploads
-- **ContextCard** (`ContextCard.tsx`): Checkable cards with three-dot menu for "Show Prompt"
-- **PromptDetails** (`PromptDetails.tsx`): Nested Sheet displaying markdown content with caching
+  - **Raw Transcript Tab**: Editable textarea (single source of truth)
+  - **Generate PRD Tab**: Structured prompt context with auto-save PRD functionality
+  - **UI Designs Tab**: Comprehensive design generation with per-transcript image storage
+- **ContextCard** (`ContextCard.tsx`): Supports both prompt viewing and PRD display
+- **PRDViewer** (`PRDViewer.tsx`): Full-screen PRD viewer with copy/download
+- **TranscriptViewer** (`TranscriptViewer.tsx`): Raw transcript content viewer
 
-### **5. Enhanced State Management (`useAppStore.ts`)**
-- **Simplified Structure**: Focus on transcripts vs complex recordings
-- **Pause State**: Tracks recording pause/resume state
-- **Tab Management**: Active tab state for TranscriptDetails (transcript | generate-prd | ui-designs)
-- **Context Selection**: Selected context cards for both PRD and UI design generation
-- **Title Support**: Handles transcript titles with auto-generation
-- **UI Designs State**: Image uploads, JSON prompts, generated designs, generation counts
-- **Persistence**: Auto-saves transcripts with new fields to localStorage
-- **Date Handling**: Proper serialization/deserialization of Date objects
-
-### **6. Structured Prompt System**
-- **Prompt Builder** (`promptBuilder.ts`): Conditional XML section generation for structured prompts
-- **Markdown & Content System**: Enhanced markdown display with multiple master prompts
-- **MarkdownViewer** (`MarkdownViewer.tsx`): Dark theme markdown display with custom CSS
-- **Content API** (`/api/prompt-content/route.ts`): Serves markdown from public folder
-- **Caching Strategy**: localStorage with 1-hour expiration for instant loading
-- **Structured Format**: Conditional XML-like sections (`<App-description>`, `<PRD>`, `<Provided-image-references>`)
+### **6. PRD Generation & Storage System**
+- **Auto-Save PRDs**: Generated PRDs automatically saved to transcript
+- **Ready PRD Context**: PRDs become reusable context for future generations  
+- **Persistent Storage**: PRDs survive browser refresh and app restarts
+- **Context Selection**: Structured prompts with App Description, Raw Transcription, Ready PRD, Master Prompts
+- **Single Source of Truth**: Raw Transcript tab content is definitive
 
 ### **7. UI Design Generation System**
-- **Image Management**: Sheet-based upload system with thumbnail display in context cards
-- **ImageReferencesCard**: Displays thumbnails when images uploaded, click-to-upload button when empty
-- **ImageUploadSheet**: Dedicated Sheet with drag & drop + click-to-browse functionality
+- **Per-Transcript Storage**: Images, JSON prompts, designs stored per transcript
+- **Image Persistence**: File → Base64 conversion for localStorage storage
+- **Sheet-Based Upload**: Clean upload interface with drag & drop + click-to-browse
 - **Context Selection**: Multiple context card types (App Description, PRDs, Master Prompts, Images)
 - **JSON Prompt Generation**: Structured prompts using Gemini 2.5 Pro for design specifications
 - **Design Generation**: Fal AI Flux Schnell model for UI mockup creation (1-3 variations)
-- **Image Viewer**: Full-screen modal with zoom controls and download functionality
-- **Examples Gallery**: Reference design inspiration with modal viewing
+- **Full-Screen Viewer**: Image viewer with zoom controls and download functionality
 
-## 📊 Data Types
+### **8. Hydration & Browser Compatibility**
+- **BodyAttributeHandler**: Removes browser extension attributes that cause hydration mismatches
+- **HydrationErrorBoundary**: Graceful error handling with user-friendly fallbacks
+- **Extension Compatibility**: Handles password managers, Grammarly, and other extensions
+- **SSR Safety**: Proper client-side rendering for components that need browser APIs
 
-### **Core Types (`types/index.ts`)**
+## 📊 Enhanced Data Types
+
+### **Complete Transcript Storage (`types/index.ts`)**
 ```typescript
+interface GeneratedPRD {
+  content: string;
+  generatedAt: Date;
+  contextUsed: string[];
+}
+
+interface SerializableImageRef {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  dataUrl: string; // Base64 for persistence
+  uploadedAt: Date;
+}
+
+interface TranscriptUIDesigns {
+  uploadedImages: SerializableImageRef[];
+  generatedJsonPrompt: string | null;
+  generatedDesigns: GeneratedUIDesign[];
+  designGenerationCount: number;
+  lastModified: Date;
+}
+
 interface Transcript {
   id: string;
   title: string;
-  text: string;
+  text: string; // Single source of truth
   createdAt: Date;
   updatedAt: Date;
   status: 'processing' | 'completed' | 'error';
-}
-
-interface GeneratedDesign {
-  id: string;
-  url: string;
-  prompt: string;
-  createdAt: Date;
-}
-
-interface AppState {
-  transcripts: Transcript[];
-  currentTranscript: Transcript | null;
-  isRecording: boolean;
-  isPaused: boolean;
-  isProcessing: boolean;
-  error: string | null;
-  selectedContextCards: string[];
-  activeTab: 'transcript' | 'generate-prd' | 'ui-designs';
-  // UI Designs specific state
-  uploadedImages: File[];
-  generatedJsonPrompt: string | null;
-  generatedDesigns: GeneratedDesign[];
-  designGenerationCount: number;
-  isGeneratingJson: boolean;
-  isGeneratingDesigns: boolean;
+  generatedPRD?: GeneratedPRD; // Auto-saved PRDs
+  uiDesigns?: TranscriptUIDesigns; // Per-transcript UI data
 }
 ```
 
-## 🎨 UI/UX Design
+## 🗄️ Storage Architecture
 
-### **Design System**
-- **Theme**: Glass morphism with dark background
-- **Colors**: White text with opacity variations, blue/green accents
-- **Layout**: Centered content, max-width containers
-- **Responsive**: Mobile-first design with responsive grids
+### **Storage Keys**
+- `voice-transcription-transcripts` - All transcript data including PRDs and UI designs
+- `prompt-content-{filename}.md` - Cached master prompts (1-hour expiry)
+- `transcript-migration-attempted` - Migration tracking (sessionStorage)
 
-### **Key Components**
-- **Record Voice Card**: Central recording interface with title auto-generation
-- **Library Card**: Large container with sorting dropdown and responsive grid
-- **TranscriptCard**: Individual previews showing titles, truncated text, metadata
-- **TranscriptDetails Sheet**: Editable title, triple tabs (Raw Transcript | Generate PRD | UI Designs)
-- **ContextCard**: Checkable cards with dropdown menu for prompt viewing
-- **ImageReferencesCard**: Context card showing image thumbnails with Sheet-based upload
-- **ImageViewerDialog**: Full-screen image viewer with zoom/download controls
-- **PromptDetails Sheet**: Nested markdown viewer with dark theme styling
-- **Error Display**: Inline error messages with icons
+### **Data Persistence**
+- ✅ **Transcript Cards**: All basic data (title, text, dates, status)
+- ✅ **Generated PRDs**: Content, metadata, context used
+- ✅ **UI Design Data**: Images (Base64), JSON prompts, generated designs
+- ✅ **Raw Transcript Edits**: Changes in Raw Transcript tab persist
+- ✅ **Upload Images**: Files converted to Base64 for storage
+- ✅ **Generation Counts**: Per-transcript design generation tracking
 
-## 🔄 Enhanced User Flow
+## 🔄 User Flow
 
-### **Recording Flow**
+### **Recording & Transcription Flow**
 1. **Start Recording**: Click microphone button
 2. **Pause/Resume**: Use yellow pause button (toggles icons)
 3. **Stop Recording**: Red stop button triggers transcription
 4. **Processing**: Loading spinner during Fal AI processing
 5. **Review**: Editable textarea with transcript results (auto-generated title)
-6. **Save/Discard**: Add to library or discard with confirmation
+6. **Save**: Transcript automatically persists to localStorage
 
-### **Library Management Flow**
-7. **Browse Library**: View transcripts in sortable grid (newest first by default)
-8. **Sort Options**: Newest First, Oldest First, By Title (dropdown menu)
-9. **View Details**: Click transcript card to open detailed Sheet view
-10. **Edit Title/Text**: In-place editing of titles and transcript content
-11. **Tab Navigation**: Switch between Raw Transcript, Generate PRD, and UI Designs tabs
-12. **Context Selection**: Check/uncheck context cards for generation (App Description, PRDs, Master Prompts, Images)
-13. **View Prompts**: Click three-dot menu → "Show Prompt" to view markdown content
-14. **Generate PRD**: Use structured prompts with selected context cards
-15. **UI Design Workflow**: Upload images → Generate JSON prompt → Generate 1-3 design variations → View/download results
+### **Library & Management Flow**
+7. **Loading**: Shows loading spinner until data hydrates from localStorage
+8. **Browse Library**: View transcripts in sortable grid (newest first by default)
+9. **Sort Options**: Newest First, Oldest First, By Title (dropdown menu)
+10. **View Details**: Click transcript card to open detailed Sheet view
+11. **Edit Content**: In-place editing of titles and transcript content (single source of truth)
 
-## 🐛 Known Issues & Recent Fixes
+### **PRD Generation Flow**
+12. **Tab Navigation**: Switch to Generate PRD tab
+13. **Context Selection**: Check Ready PRD, App Description, Raw Transcription, Master Prompts
+14. **Generate PRD**: Automatically saves to transcript.generatedPRD
+15. **Ready PRD Card**: Immediately appears as reusable context
+16. **View PRD**: Click "Show PRD" to open full-screen viewer
 
-### **Recently Resolved**
-- ✅ **Major UI/UX Refactor**: Complete rebuild of library and transcript management system
-- ✅ **Component Architecture**: Separated concerns into modular, reusable components  
-- ✅ **Zustand State Management**: Enhanced with tab navigation and context selection
-- ✅ **Markdown Display**: Fixed dark theme styling with proper contrast for code blocks
-- ✅ **Content Loading**: Resolved 404 errors with proper API route and localStorage caching
-- ✅ **Type Safety**: Updated TypeScript types for new title field and tab management
+### **UI Design Generation Flow**
+17. **Upload Images**: Sheet-based interface with drag & drop
+18. **Generate JSON Prompt**: Creates structured design prompt with selected context
+19. **Generate Designs**: Creates 1-3 design variations using Fal AI
+20. **View Results**: Full-screen image viewer with zoom and download
+21. **Persistence**: All data saved per transcript and survives browser refresh
 
-### **Recently Updated**
-- ✅ **Library System**: Replaced single TranscriptLibrary with modular Library + TranscriptCard + TranscriptDetails
-- ✅ **Tab Interface**: Enhanced to triple-tab system (Raw Transcript | Generate PRD | UI Designs)
-- ✅ **Structured Prompts**: Implemented conditional XML sections for both PRD and UI design generation
-- ✅ **Context Management**: Enhanced context cards with Raw Transcription, Master Prompts, and PRD selection
-- ✅ **UI Design Generation**: Complete workflow from image upload to design generation with Fal AI
-- ✅ **Image Management**: Sheet-based upload system with thumbnail display and full-screen viewer
-- ✅ **Markdown Integration**: Multiple master prompts (GENERATE_PRD.md, GEN_DESIGN.md) with caching
-- ✅ **Sorting & Filtering**: Date-based sorting with shadcn dropdown (newest, oldest, by title)
-- ✅ **Title Auto-generation**: Automatic title creation from first 6 words of transcript
+## 🚀 Recent Major Improvements
+
+### **✅ Complete Persistence Solution (Current Session)**
+- **Fixed Critical Issue**: `skipHydration: true` was preventing ALL data loading
+- **Enhanced Storage**: Complete per-transcript data storage including images
+- **Data Migration**: Automatic migration from old storage keys
+- **Hydration Management**: Proper loading states and SSR handling
+
+### **✅ PRD Storage & Management**
+- **Auto-Save PRDs**: Generated PRDs automatically stored in transcript
+- **Ready PRD Context**: PRDs become reusable context cards
+- **Single Source of Truth**: Raw Transcript tab is definitive content source
+- **Persistent Viewing**: PRD viewer with full-screen display and download
+
+### **✅ Browser Extension Compatibility**
+- **Hydration Fix**: Handles extension attributes (`cz-shortcut-listen`, Grammarly, etc.)
+- **Clean Error Handling**: Graceful fallbacks for hydration mismatches
+- **Extension Monitoring**: Detects and cleans problematic attributes
+
+### **✅ File Management System**
+- **Image Serialization**: File → Base64 conversion for localStorage
+- **Size Limits**: 5MB per file limit to prevent storage bloat
+- **Type Validation**: Image-only uploads with comprehensive error handling
+- **Storage Quotas**: Warnings and size management
 
 ## 🛠️ Development Commands
 
@@ -261,126 +280,80 @@ npm run typecheck    # TypeScript validation
 npm run lint         # ESLint checking
 ```
 
-**Current Dev Server**: Running on `http://localhost:3007`
+**Current Dev Server**: Running on `http://localhost:3010` (or next available port)
 
-## 🔍 Debugging & Logging
+## 🐛 Known Issues & Solutions
 
-### **Comprehensive Logging Added**
-- **Client Side**: Browser console logs for recording, chunking, API calls
-- **Server Side**: Detailed API endpoint logs with emojis for easy identification
-- **Error Tracking**: Specific error messages with full context
+### **✅ Recently Resolved**
+- ✅ **Persistence Failure**: Fixed `skipHydration: true` that prevented data loading
+- ✅ **Hydration Mismatches**: Browser extension attributes handled gracefully
+- ✅ **PRD Storage**: Generated PRDs now persist and are reusable
+- ✅ **Raw Transcript Source**: Content from Raw Transcript tab is single source of truth
+- ✅ **UI Design Persistence**: Images and designs now saved per transcript
+- ✅ **File Serialization**: Images properly converted for localStorage storage
 
-### **Debug Patterns**
-- 🎙️ Recording format selection
-- 📦 Audio chunk processing  
-- 🎯 API request details
-- 📁 File validation
-- 🤖 Fal AI processing steps
-- 🧠 Gemini AI processing steps
-- 📄 Markdown content loading and caching
-- 🗂️ Context card selection and triple-tab navigation
-- 🏗️ Structured prompt building with conditional XML sections
-- 🎨 UI design generation workflow and image management
-- 📸 Sheet-based image upload system with thumbnail display and viewer functionality
-- ❌ Error details with stack traces
+### **Current Status**
+- ✅ All transcript data persists across browser refresh
+- ✅ Hydration works without console errors
+- ✅ PRD generation with auto-save functionality
+- ✅ Per-transcript UI design storage
+- ✅ Browser extension compatibility
+- ✅ Complete data migration system
 
-## 📋 TODO for Next AI Agent
+## 🎯 Next Steps & Future Enhancements
 
-### **Immediate Priority**
-1. **Performance Optimization**: Optimize for large transcript libraries and image caching
-2. **Error Handling**: Enhanced error states for API failures and network issues
-3. **Export Features**: PDF, TXT, DOCX export for transcripts, PRDs, and generated designs
-4. **Advanced Filtering**: Add search functionality across transcripts and generated content
+### **Immediate Opportunities**
+1. **Performance Optimization**: Optimize for large transcript libraries
+2. **Export Features**: PDF, DOCX export for transcripts and PRDs
+3. **Search Functionality**: Advanced filtering across transcripts
+4. **Batch Operations**: Select multiple transcripts for bulk actions
 
-### **Future Enhancements**
-1. **Design Refinement**: Allow users to refine generated designs with additional prompts
-2. **Batch Operations**: Select multiple transcripts for bulk actions (delete, export, etc.)
-3. **Advanced Context**: More context card types (competitor analysis, user research, etc.)
-4. **Design Templates**: Pre-built design templates for common app types
-5. **Collaboration**: Share generated PRDs and designs with team members
-6. **Cloud Sync**: Optional cloud storage integration with conflict resolution
-7. **Analytics**: Track generation success rates and user preferences
-
-## 🚀 Getting Started (for New AI Agent)
-
-1. **Environment**: Ensure `.env.local` has valid `FAL_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY`
-2. **Dependencies**: Run `npm install` 
-3. **Development**: Start with `npm run dev`
-4. **Testing**: Test complete flows:
-   - Recording → transcription → library browsing
-   - PRD generation with structured prompts
-   - UI design generation with image uploads
-5. **Components**: Test all UI components (triple tabs, image upload, design viewer, structured prompts)
-6. **Debugging**: Check browser console and server logs for API calls, caching, and image processing
-7. **Validation**: Run `npm run typecheck` for TS errors
+### **Advanced Features**
+1. **Design Refinement**: Allow users to refine generated designs
+2. **Cloud Sync**: Optional cloud storage with conflict resolution
+3. **Collaboration**: Share PRDs and designs with team members
+4. **Analytics**: Track generation success rates and preferences
 
 ## 🧪 API Testing
 
 ### **Gemini API Endpoints**
 ```bash
 # Connectivity test
-curl http://localhost:3006/api/gemini
+curl http://localhost:3010/api/gemini
 
 # Simple prompt
-curl -X POST http://localhost:3006/api/gemini \
+curl -X POST http://localhost:3010/api/gemini \
   -H "Content-Type: application/json" \
   -d '{"prompt":"What is the capital of France?"}'
 
 # Test mode
-curl -X POST http://localhost:3006/api/gemini \
+curl -X POST http://localhost:3010/api/gemini \
   -H "Content-Type: application/json" \
   -d '{"test":true}'
 ```
 
-## 📝 Recent Changes Log
+## 📝 Session Change Log
 
-### **2025-01-08 - Major Rebuild & Whisper Integration**
-- Completely rebuilt app from complex "voice clarification" to focused transcription
-- Removed: FileUploader, ProcessingStatus, ErrorDisplay, RecordingsList components  
-- Added: Enhanced pause/resume recording, Fal AI integration, Sheet component
-- Updated: Simplified data structure, improved error handling
-- Fixed: Audio format compatibility, TypeScript errors, state persistence
-- Upgraded: FAL Whisper model integration for improved transcription accuracy
+### **2025-09-09 - Complete Persistence & Hydration Fix**
+- **Critical Fix**: Removed `skipHydration: true` - restored data loading functionality
+- **Enhanced Storage**: Complete per-transcript storage for PRDs and UI designs
+- **Data Migration**: Automatic migration from `voice-clarification-recordings` to `voice-transcription-transcripts`
+- **File Serialization**: Images converted to Base64 for localStorage persistence
+- **Hydration Handling**: Added `BodyAttributeHandler` and `HydrationErrorBoundary`
+- **Browser Compatibility**: Fixed extension attribute conflicts (password managers, Grammarly)
+- **PRD Auto-Save**: Generated PRDs automatically saved and reusable as context
+- **Single Source of Truth**: Raw Transcript tab content is definitive
+- **Per-Transcript UI Designs**: Images, JSON prompts, and designs stored per transcript
 
-### **2025-09-09 - Major UI/UX Refactor & Enhanced Components**
-- **Complete Library Overhaul**: Replaced TranscriptLibrary with modular component system
-- **New Components**: Library, TranscriptCard, TranscriptDetails, ContextCard, PromptDetails, MarkdownViewer (6 new components)
-- **Enhanced Features**: Editable titles, auto-generation, sorting dropdown, triple-tab system, context selection
-- **Dependencies**: Added `@uiw/react-md-editor`, `@radix-ui/react-tabs`, `@radix-ui/react-dropdown-menu`
-- **State Management**: Enhanced Zustand with tab navigation, context card selection, title support
-- **Markdown System**: Dark theme styling, localStorage caching, preloading, proper API routes
-- **Type Safety**: Updated TypeScript interfaces with new fields and comprehensive type coverage
-
-### **2025-09-09 - Structured Prompts & UI Design Generation System**
-- **Structured Prompt Builder**: Conditional XML sections with prompt builder utility
-- **UI Designs Tab**: Complete design generation workflow with image uploads
-- **Enhanced Generate PRD**: Raw Transcription and Master Prompt context cards
-- **New Components**: GeneratePRDTab, UIDesignsTab, ImageReferencesCard, ImageUploadSheet, ImageViewerDialog, ExamplesModal (6 new components)
-- **File Upload System**: Sheet-based upload with drag & drop + click-to-browse functionality
-- **API Enhancements**: generate-json-prompt and generate-design routes with Fal AI integration
-- **Image Management**: Full-screen viewer with zoom, download, and gallery functionality
-- **Dependencies**: Added `@radix-ui/react-slider`, `react-dropzone` for enhanced UI controls
-
-### **2025-09-09 - Enhanced Image Upload UX**
-- **Sheet-based Upload**: Moved drag & drop functionality from inline to dedicated Sheet
-- **Thumbnail Display**: ImageReferencesCard now shows uploaded images as thumbnails
-- **Click-to-Upload**: Clean upload button interface when no images present
-- **New Component**: ImageUploadSheet with enhanced file management
-- **Better UX**: Separation of viewing (thumbnails) from uploading (Sheet)
-- **File Management**: Preview, remove individual files, clear all functionality
-- **Responsive Design**: Grid layout with overflow indication (+count for >5 images)
-
-### **Key Metrics (Complete Implementation)**
-- **Code Changes**: +1927 lines added, -203 lines removed (comprehensive system overhaul)
-- **Components**: 12 new components added, 6 existing components enhanced  
-- **New Dependencies**: 5 major packages (markdown editor, tabs, dropdown, slider, dropzone)
-- **API Integration**: 4 API routes (transcribe, gemini, generate-json-prompt, generate-design)
-- **User Experience**: Evolved from basic transcription to full AI-powered design generation platform
-- **Structured Prompts**: Conditional XML format for both PRD and UI design generation
-- **Image Management**: Complete Sheet-based upload, thumbnail display, generation, and viewing system
+### **Key Metrics (Latest Implementation)**
+- **Code Changes**: +919 lines added, -69 lines removed
+- **New Components**: 3 (BodyAttributeHandler, HydrationErrorBoundary, PRDViewer, TranscriptViewer)
+- **Enhanced Components**: 5 (Library, TranscriptDetails, GeneratePRDTab, useAppStore)
+- **New Utilities**: 3 (file-serialization, migration-utils, updated storage keys)
+- **Problem Resolution**: Complete data persistence + hydration compatibility
 
 ---
 
 **Last Updated**: September 9, 2025  
-**Status**: ✅ Core functionality complete, ✅ Structured prompt system complete, ✅ UI design generation complete, ✅ Enhanced PRD generation, ✅ Sheet-based image upload system  
-**Next Session**: Performance optimization, error handling improvements, and export functionality
+**Status**: ✅ Complete persistence system implemented, ✅ Hydration issues resolved, ✅ PRD auto-save working, ✅ Per-transcript UI design storage, ✅ Browser extension compatibility  
+**Next Session**: Performance optimization, export features, and advanced search functionality
