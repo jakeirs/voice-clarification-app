@@ -17,14 +17,14 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { useAppStore } from '@/lib/store-zustand/useAppStore';
-import { ContextCard } from './ContextCard';
 import { PromptDetails } from './PromptDetails';
+import { UIDesignsTab } from './UIDesignsTab';
+import { GeneratePRDTab } from './GeneratePRDTab';
 import { Transcript } from '@/types';
 import { 
   Save,
   Edit,
-  Trash2,
-  Sparkles
+  Trash2
 } from 'lucide-react';
 
 interface TranscriptDetailsProps {
@@ -43,9 +43,6 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
   const [isEditingText, setIsEditingText] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   
-  // Prompt details state
-  const [promptDetailsOpen, setPromptDetailsOpen] = useState(false);
-
   const handleTitleSave = () => {
     if (editedTitle.trim()) {
       updateTranscript(transcript.id, { title: editedTitle.trim() });
@@ -78,10 +75,6 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
-  };
-
-  const handleShowPrompt = () => {
-    setPromptDetailsOpen(true);
   };
 
   return (
@@ -128,13 +121,16 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
           </SheetHeader>
 
           <div className="mt-6">
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'transcript' | 'generate-prd')}>
-              <TabsList className="grid w-full grid-cols-2 bg-white/5 border border-white/10">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'transcript' | 'generate-prd' | 'ui-designs')}>
+              <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10">
                 <TabsTrigger value="transcript" className="text-white data-[state=active]:bg-white/10">
                   Raw Transcript
                 </TabsTrigger>
                 <TabsTrigger value="generate-prd" className="text-white data-[state=active]:bg-white/10">
                   Generate PRD
+                </TabsTrigger>
+                <TabsTrigger value="ui-designs" className="text-white data-[state=active]:bg-white/10">
+                  UI Designs
                 </TabsTrigger>
               </TabsList>
 
@@ -188,29 +184,12 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
 
               {/* Generate PRD Tab */}
               <TabsContent value="generate-prd" className="mt-6 space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white">Context Selection</h3>
-                  <p className="text-white/60 text-sm">
-                    Select context cards to include with your transcript for PRD generation.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <ContextCard
-                      id="entire-app-prd"
-                      title="Entire App PRD"
-                      description="Complete product requirements document for the voice transcription application"
-                      onShowPrompt={handleShowPrompt}
-                    />
-                    {/* Add more context cards here as needed */}
-                  </div>
+                <GeneratePRDTab transcript={transcript} />
+              </TabsContent>
 
-                  <div className="pt-4 border-t border-white/10">
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate PRD
-                    </Button>
-                  </div>
-                </div>
+              {/* UI Designs Tab */}
+              <TabsContent value="ui-designs" className="mt-6 space-y-6">
+                <UIDesignsTab transcript={transcript} />
               </TabsContent>
             </Tabs>
           </div>
@@ -256,14 +235,6 @@ export function TranscriptDetails({ transcript, isOpen, onClose }: TranscriptDet
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* Nested Prompt Details Sheet */}
-      <PromptDetails
-        isOpen={promptDetailsOpen}
-        onClose={() => setPromptDetailsOpen(false)}
-        promptTitle="Entire App PRD"
-        promptPath="MASTER_PROMPTS/Description_of_app.md"
-      />
     </>
   );
 }
